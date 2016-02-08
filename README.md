@@ -6,9 +6,15 @@ Runs in your browser independant of your operating system.
 
 ### Instructions
 
-Go to https://play.google.com/music/listen in chrome
+1. Copy portify.js to your clipboard from  **[< HERE >](https://raw.githubusercontent.com/jordam/Portify.JS/master/portify.js)**. Copy it just like regular text.
 
-Press Ctrl-Shift-J to open the javascript console. Paste in the contents of portify.js and hit enter. Follow the instructions on the screen.
+2. Go to https://play.google.com/music/listen in chrome
+
+3. Press Ctrl-Shift-J to open the javascript console. 
+
+4. Paste in portify.js and hit enter. 
+
+5. Follow the instructions on the screen.
 
 The script will start by pulling in the data from spotify, it will then create all of your playlists and begin populating them with tracks.
 
