@@ -177,7 +177,7 @@ function doallplaylists(plobject){
 	window.plmake = [];
 	for (var i = 0; i < plobject.length; i++) {
 		tracks = window.items['pl-' + plobject[i]];
-		plname = 'test-' + plobject[i];
+		plname = window.plprefix + plobject[i];
 		console.log(plobject[i]);
 		console.log(tracks);
 		window.plmake.push(plname);
@@ -238,9 +238,19 @@ function doprompt(){
 			});
 			break;
 		case 2:
-			getItems('https://api.spotify.com/v1/me/playlists', 'playlists', gotPlaylists);
+			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {                
+			  if (result === null || result == "") {                                             
+				window.plprefix = "";
+			  } else {
+				window.plprefix = result;
+				doprompt();
+			  }
+			});
 			break;
 		case 3:
+			getItems('https://api.spotify.com/v1/me/playlists', 'playlists', gotPlaylists);
+			break;
+		case 4:
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -266,7 +276,7 @@ function doprompt(){
 				}
 			});
 			break;
-		case 4:
+		case 5:
 			if (window.plarray.length > 0){
 				localcopy = window.plarray.shift();
 				bootbox.confirm({
@@ -295,7 +305,7 @@ function doprompt(){
 				}
 			}
 			break;
-		case 5:
+		case 6:
 			window.plarray = window.plarrayFIX;
 			bootbox.confirm("Confirm Transfer *This can take quite a while and is best setup overnight!*", function(result) {
 				if (result == true){
