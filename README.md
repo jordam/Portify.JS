@@ -8,7 +8,7 @@ Runs in your browser independant of your operating system.
 
 1. Copy portify.js to your clipboard from  **[< HERE >](https://raw.githubusercontent.com/jordam/Portify.JS/master/portify.js)**. Copy it just like regular text.
 
-2. Go to https://play.google.com/music/listen in chrome
+2. Open https://play.google.com/music/listen in its own window in chrome
 
 3. Press Ctrl-Shift-J to open the javascript console. 
 
