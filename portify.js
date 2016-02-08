@@ -6,23 +6,24 @@ function addscript(url){
 }
 function addstyle(url){
 	var style = document.createElement('link');
-	style.rel = 'stylesheet'
+	style.rel = 'stylesheet';
 	style.href = url;
 	style.type = 'text/css';
 	document.getElementsByTagName('head')[0].appendChild(style);
 }
 
 function removejscssfile(filename, filetype){
-    var targetelement=(filetype=="js")? "script" : (filetype=="css")? "link" : "none" //determine element type to create nodelist from
-    var targetattr=(filetype=="js")? "src" : (filetype=="css")? "href" : "none" //determine corresponding attribute to test for
-    var allsuspects=document.getElementsByTagName(targetelement)
+    var targetelement=(filetype=="js")? "script" : (filetype=="css")? "link" : "none"; //determine element type to create nodelist from
+    var targetattr=(filetype=="js")? "src" : (filetype=="css")? "href" : "none" ; //determine corresponding attribute to test for
+    var allsuspects=document.getElementsByTagName(targetelement);
     for (var i=allsuspects.length; i>=0; i--){ //search backwards within nodelist for matching elements to remove
-    if (allsuspects[i] && allsuspects[i].getAttribute(targetattr)!=null && allsuspects[i].getAttribute(targetattr).indexOf(filename)!=-1)
-        allsuspects[i].parentNode.removeChild(allsuspects[i]) //remove element by calling parentNode.removeChild()
-    }
+		if (allsuspects[i] && allsuspects[i].getAttribute(targetattr)!=null && allsuspects[i].getAttribute(targetattr).indexOf(filename)!=-1){
+			allsuspects[i].parentNode.removeChild(allsuspects[i]); //remove element by calling parentNode.removeChild()
+		}
+	}
 }
 
-addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css")
+addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
 addscript('https://code.jquery.com/jquery-1.11.0.min.js');
 setTimeout(function() {
 		addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js');
@@ -68,10 +69,10 @@ function pollfornewsong(song, artist, playlist){
 	} else {
 		if ($(".g-content:contains('No results found')").length && pollcount > 6){
 			addSongCallback(song, artist, playlist);
-			repoll = false
+			repoll = false;
 		} else{
 			if (window.pollcount > 12){
-				repoll = false
+				repoll = false;
 				addSongCallback(song, artist, playlist);
 			}
 		}
@@ -135,7 +136,7 @@ function itemCB(resp, vardump, donecb){
 	}
 	window.items[vardump] = window.items[vardump].concat(ritems);
 	if (rnext != undefined){
-		getItems(rnext, vardump, donecb)
+		getItems(rnext, vardump, donecb);
 	} else {
 		console.log(donecb);
 		donecb(window.items[vardump]);
@@ -173,10 +174,10 @@ function plComplete(items){
 }
 function doallplaylists(plobject){
 	window.tlmake = [];
-	window.plmake = []
+	window.plmake = [];
 	for (var i = 0; i < plobject.length; i++) {
 		tracks = window.items['pl-' + plobject[i]];
-		plname = '' + plobject[i]
+		plname = 'test-' + plobject[i];
 		console.log(plobject[i]);
 		console.log(tracks);
 		window.plmake.push(plname);
@@ -205,7 +206,7 @@ function startRunning(){
 function tickLauncher(){
 	if (window.RunSong == true){
 		window.RunSong = false;
-		dosong = window.tlmake.shift()
+		dosong = window.tlmake.shift();
 		addSongToPlaylist(dosong[0], dosong[1], dosong[2]);
 	}
 	if (window.RunPL == true){
@@ -255,8 +256,11 @@ function doprompt(){
 				callback: function(result) {
 					if (result == false){
 						window.modalstage = window.modalstage + 1;
+						window.plarrayFIX = window.plarray;
 					}
-					window.plarrayFIX = window.plarray;
+					else{
+						window.plarrayFIX = [];
+					}
 					window.plarrayNO = [];
 					doprompt();
 				}
