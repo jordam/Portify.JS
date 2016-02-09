@@ -1,4 +1,4 @@
-//Portify.JS V0.03
+//Portify.JS V0.04
 function addscript(url, cbname){
 	var script = document.createElement('script');
 	script.src = url;
@@ -34,6 +34,11 @@ function doloadstep(){
 			break;
 		case 1:
 			addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', doloadstep);
+			$.extend($.expr[":"], {
+			  "containsNC": function(elem, i, match, array) {
+				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+			  }
+			});
 			break;
 		case 2:
 			addscript('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', dospotimport);
@@ -66,9 +71,9 @@ function addSongToPlaylist(song, artist, playlist){
 }
 function pollfornewsong(song, artist, playlist){
 	window.pollcount = window.pollcount + 1;
-	repoll = true;
-	if($(".search-view:contains('" + artist + "')").length > 0){
-		if($(".search-view:contains('" + song + "')").length > 0 || window.lastartist != window.currartist){
+	var repoll = true;
+	if($(".search-view:containsNC('" + artist + "')").length > 0){
+		if($(".search-view:containsNC('" + song + "')").length > 0 || window.lastartist != window.currartist){
 			addSongCallback(song, artist, playlist);
 			repoll = false;
 		} else {
@@ -164,6 +169,9 @@ function getItems(url, vardump, donecb) {
 			itemCB(r, vardump, donecb);
 		},
 		error: function(r) {
+			bootbox.alert('Spotify Error (most likely an invalid or expired oauth token.)', function() {
+				blankscriptfiles();
+			});
 		}
 	});
 }
@@ -319,6 +327,7 @@ function doprompt(){
 			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {                
 			  if (result === null || result == "") {                                             
 				window.plprefix = "";
+				doprompt();
 			  } else {
 				window.plprefix = result;
 				doprompt();
@@ -402,6 +411,11 @@ function blankscriptfiles(){
 	removejscssfile('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', "js");
 	removejscssfile('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', "js");
 }
+
+// Clean up considerations to patch memory leak
+// $("div.wave-container").remove()
+// $("div.wave").remove()
+// Still have some supersized array of track info stored deep inside the machine. Also Polymer animate is still lagging with cleared waves
 
 function dospotimport(){
 	doprompt();
