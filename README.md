@@ -1,13 +1,16 @@
 # Portify.JS
 
-Transfer spotify playlists to google play without downloading anything at all!
-
-Runs in your browser independent of your operating system. 
-
-Lets you transfer all of your playlists, some of your playlists, or any public spotify playlist into google play. Your pick!
+Transfer Spotify playlists to Google Play Music.
++ No Downloads
++ No Passwords
++ Copy Your Playlists
++ Copy Others Playlists
++ Spotify Free Compatible
++ No B/S
 
 Setup is fast, go from reading this sentence to importing music in less then 60 seconds.
 
+##
 ### Instructions
 
 1. Drag the big <code>Portify.JS</code> link from [< THIS PAGE >](https://rawgit.com/jordam/Portify.JS/master/helper.html) to your bookmarks.
@@ -16,9 +19,12 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 
 3. Click <code>Portify.JS</code> in on your bookmarks bar
 
-You might need to press CTRL-SHIFT-B to pop open your bookmarks bar if its hidden.
+##
+### Notes
 
-The script will start by pulling in the data from spotify, it will then create all of your playlists and begin populating them with tracks.
+Portify.JS runs in the Chrome browser. Others might work, but I'm recommending chrome currently
+
+The script will start by pulling in the data from Spotify, it will then create all of your playlists and begin populating them with tracks.
 
 This will occur real-time, do not interrupt the process. This process can take a LONG time! It depends on the number of songs, but do not run this if you will need to disconnect your computer from the internet anytime remotely soon.
 
