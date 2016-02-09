@@ -11,6 +11,7 @@ Transfer Spotify playlists to Google Play Music.
 Setup is fast, go from reading this sentence to importing music in less then 60 seconds.
 
 ##
+
 ### Instructions
 
 1. Drag the big <code>Portify.JS</code> link from [< THIS PAGE >](https://rawgit.com/jordam/Portify.JS/master/helper.html) to your bookmarks.
@@ -20,6 +21,7 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 3. Click <code>Portify.JS</code> in on your bookmarks bar
 
 ##
+
 ### Notes
 
 Portify.JS runs in the Chrome browser. Others might work, but I'm recommending chrome currently
