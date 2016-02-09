@@ -6,7 +6,7 @@ Runs in your browser independant of your operating system.
 
 ### Instructions
 
-1. Drag this link to your bookmarks bar -> <a class="bookmarklet" href="javascript:(function()%7Bfunction%20callback()%7B%7Dvar%20s%3Ddocument.createElement(%22script%22)%3Bs.src%3D%22https%3A%2F%2Frawgit.com%2Fjordam%2FPortify.JS%2Fmaster%2Fportify.js%22%3Bif(s.addEventListener)%7Bs.addEventListener(%22load%22%2Ccallback%2Cfalse)%7Delse%20if(s.readyState)%7Bs.onreadystatechange%3Dcallback%7Ddocument.body.appendChild(s)%3B%7D)()">Portify.JS</a>
+1. Drag the big <code>Portify.JS</code> link from [< THIS PAGE >](https://rawgit.com/jordam/Portify.JS/master/helper.html) to your bookmarks.
 
 2. Open https://play.google.com/music/listen in its own window in chrome.
 
