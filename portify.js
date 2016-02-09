@@ -236,7 +236,13 @@ function doprompt(){
 	mds = window.modalstage;
 	switch (mds) {
 		case 0:
-			bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check the checkbox at the top. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
+			if (window.location.hostname.indexOf('play.google.com') === -1){
+			bootbox.alert('This is supposed to be ran over on the google music player', function() {
+			blankscriptfiles();
+			});
+			} else {
+				bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check the checkbox at the top. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
+			}
 			break;
 		case 1:
 			bootbox.prompt("Enter the OAUTH token here", function(result) {                
@@ -381,9 +387,7 @@ function doprompt(){
 			window.plarray = window.plarrayFIX;
 			bootbox.confirm("Confirm Transfer *This can take quite a while and is best setup overnight!*", function(result) {
 				if (result == true){
-					removejscssfile("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css", "css");
-					removejscssfile('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', "js");
-					removejscssfile('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', "js");
+					blankscriptfiles();
 					doallplaylists(window.plarray);
 				} else{
 					location.reload();
@@ -392,6 +396,11 @@ function doprompt(){
 			break;
 	}
 	window.modalstage = window.modalstage + 1;
+}
+function blankscriptfiles(){
+	removejscssfile("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css", "css");
+	removejscssfile('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', "js");
+	removejscssfile('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', "js");
 }
 
 function dospotimport(){
