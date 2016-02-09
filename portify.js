@@ -253,7 +253,7 @@ function doprompt(){
 			bootbox.confirm({
 				buttons: {
 					confirm: {
-						label: 'My Playlists',
+						label: 'My Spotify Playlists',
 						className: 'confirm-button-class'
 					},
 					cancel: {
