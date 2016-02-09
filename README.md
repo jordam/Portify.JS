@@ -2,7 +2,9 @@
 
 Transfer all of your spotify playlists to google play without downloading anything at all!
 
-Runs in your browser independent of your operating system. Go from reading this sentence to importing your music in less then 60 seconds.
+Runs in your browser independent of your operating system. 
+
+Go from reading this sentence to importing your music in less then 60 seconds.
 
 ### Instructions
 
