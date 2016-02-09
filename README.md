@@ -1,10 +1,12 @@
 # Portify.JS
 
-Transfer all of your spotify playlists to google play without downloading anything at all!
+Transfer spotify playlists to google play without downloading anything at all!
 
 Runs in your browser independent of your operating system. 
 
-Go from reading this sentence to importing your music in less then 60 seconds.
+Lets you transfer all of your playlists, some of your playlists, or any public spotify playlist into google play. Your pick!
+
+Setup is fast, go from reading this sentence to importing music in less then 60 seconds.
 
 ### Instructions
 
