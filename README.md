@@ -6,15 +6,13 @@ Runs in your browser independant of your operating system.
 
 ### Instructions
 
-1. Copy portify.js to your clipboard from  **[< HERE >](https://raw.githubusercontent.com/jordam/Portify.JS/master/portify.js)**. Copy it just like regular text.
+1. Drag this link to your bookmarks bar -> <a class="bookmarklet" href="javascript:(function()%7Bfunction%20callback()%7B%7Dvar%20s%3Ddocument.createElement(%22script%22)%3Bs.src%3D%22https%3A%2F%2Frawgit.com%2Fjordam%2FPortify.JS%2Fmaster%2Fportify.js%22%3Bif(s.addEventListener)%7Bs.addEventListener(%22load%22%2Ccallback%2Cfalse)%7Delse%20if(s.readyState)%7Bs.onreadystatechange%3Dcallback%7Ddocument.body.appendChild(s)%3B%7D)()">Portify.JS</a>
 
-2. Open https://play.google.com/music/listen in its own window in chrome (Might work in other/all browsers)
+2. Open https://play.google.com/music/listen in its own window in chrome.
 
-3. Press Ctrl-Shift-J to open the javascript console. 
+3. Click <code>Portify.JS</code> in on your bookmarks bar
 
-4. Paste in portify.js and hit enter. 
-
-5. Follow the instructions on the screen.
+You might need to press CTRL-SHIFT-B to pop open your bookmarks bar if its hidden.
 
 The script will start by pulling in the data from spotify, it will then create all of your playlists and begin populating them with tracks.
 
