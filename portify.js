@@ -1,7 +1,9 @@
-function addscript(url){
+//Portify.JS V0.03
+function addscript(url, cbname){
 	var script = document.createElement('script');
 	script.src = url;
 	script.type = 'text/javascript';
+	script.onload =function(){cbname()};
 	document.getElementsByTagName('head')[0].appendChild(script);
 }
 function addstyle(url){
@@ -23,14 +25,23 @@ function removejscssfile(filename, filetype){
 	}
 }
 
-addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
-addscript('https://code.jquery.com/jquery-1.11.0.min.js');
-setTimeout(function() {
-		addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js');
-}, 500);
-setTimeout(function() {
-		addscript('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js');
-}, 1000);
+window.loadstep = 0;
+function doloadstep(){
+	switch (window.loadstep) {
+		case 0:
+			addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
+			addscript('https://code.jquery.com/jquery-1.11.0.min.js', doloadstep);
+			break;
+		case 1:
+			addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', doloadstep);
+			break;
+		case 2:
+			addscript('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', dospotimport);
+			break;
+	}
+	window.loadstep = window.loadstep + 1;
+}
+			
 
 function newPlaylist(name){
 	console.log(name);
@@ -238,6 +249,67 @@ function doprompt(){
 			});
 			break;
 		case 2:
+		
+			bootbox.confirm({
+				buttons: {
+					confirm: {
+						label: 'My Playlists',
+						className: 'confirm-button-class'
+					},
+					cancel: {
+						label: 'A Spotify Playlist Link',
+						className: 'cancel-button-class'
+					}
+				},
+				message: "What are you importing today?",
+				callback: function(result) {
+					if (result == true){
+						window.modalstage = window.modalstage + 2;
+					}
+					doprompt();
+				}
+			});
+			break;
+		case 3:
+			window.plprefix = "";
+			bootbox.prompt("Name the playlist", function(result) {                
+			  if (result === null || result == "") {                                             
+				window.pllinkname = "";
+			  } else {
+				window.pllinkname = result;
+				doprompt();
+			  }
+			});
+			break;
+		case 4:
+			bootbox.prompt("Paste the link in here", function(result) {                
+			  if (result === null) {                                             
+				window.modalstage = 0;
+			  } else {
+				var res = result.split("/");
+				var atog = false;
+				var aaray = [];
+				for(var ssplit in res){
+					if (atog == true){
+						aaray.push(res[ssplit]);
+						atog = false;
+					}
+					if (res[ssplit] == 'user' || res[ssplit] == 'playlist'){
+						atog = true;
+					}
+				}
+				if(aaray.length == 2){
+					window.modalstage = window.modalstage + 4; // Skip to 9 next
+					window.returncount = 0;
+					window.plarray = [];
+					window.plarray.push(window.pllinkname);
+					window.plarrayFIX = window.plarray;
+					getItems("https://api.spotify.com/v1/users/" + aaray[0] + "/playlists/" + aaray[1], 'pl-' + window.pllinkname, plComplete);
+				}
+			  }
+			});
+			break;
+		case 5: //Different route to get here
 			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {                
 			  if (result === null || result == "") {                                             
 				window.plprefix = "";
@@ -247,10 +319,10 @@ function doprompt(){
 			  }
 			});
 			break;
-		case 3:
+		case 6:
 			getItems('https://api.spotify.com/v1/me/playlists', 'playlists', gotPlaylists);
 			break;
-		case 4:
+		case 7:
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -276,7 +348,7 @@ function doprompt(){
 				}
 			});
 			break;
-		case 5:
+		case 8:
 			if (window.plarray.length > 0){
 				localcopy = window.plarray.shift();
 				bootbox.confirm({
@@ -305,7 +377,7 @@ function doprompt(){
 				}
 			}
 			break;
-		case 6:
+		case 9:
 			window.plarray = window.plarrayFIX;
 			bootbox.confirm("Confirm Transfer *This can take quite a while and is best setup overnight!*", function(result) {
 				if (result == true){
@@ -325,4 +397,4 @@ function doprompt(){
 function dospotimport(){
 	doprompt();
 }
-setTimeout(dospotimport, 3000);
+doloadstep();
