@@ -2,7 +2,7 @@
 
 Transfer all of your spotify playlists to google play without downloading anything at all!
 
-Runs in your browser independant of your operating system.
+Runs in your browser independent of your operating system. Go from reading this sentence to importing your music in less then 60 seconds.
 
 ### Instructions
 
@@ -16,7 +16,7 @@ You might need to press CTRL-SHIFT-B to pop open your bookmarks bar if its hidde
 
 The script will start by pulling in the data from spotify, it will then create all of your playlists and begin populating them with tracks.
 
-This will occour realtime, do not inturrupt the process. This process can take a LONG time! It depends on the number of songs, but do not run this if you will need to disconnect your computer from the internet anytime remotely soon.
+This will occur real-time, do not interrupt the process. This process can take a LONG time! It depends on the number of songs, but do not run this if you will need to disconnect your computer from the internet anytime remotely soon.
 
 This script is EXPERIMENTAL! I had some recent success with it though and wanted to put the concept out there. I will be working to improve the script as time goes on.
 
