@@ -28,7 +28,7 @@ Portify.JS runs in the Chrome browser. Others might work, but I'm recommending c
 
 The script will start by pulling in the data from Spotify, it will then create the playlist(s) and begin populating them with tracks.
 
-This will occur real-time, do not interrupt the process. The process can take a while. A 100 track playlist only took me about 2 minutes but importing thousands at once can slow things down so I threw in some warnings.
+This will occur real-time, do not interrupt the process. The process can take a while. A 100 track playlist took me about 2 minutes so you can figure its around 1.5 seconds a song.
 
 This script is EXPERIMENTAL! I had some recent success with it though and wanted to put the concept out there. I will be working to improve the script as time goes on.
 

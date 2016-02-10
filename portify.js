@@ -396,7 +396,7 @@ function doprompt(){
 			break;
 		case 9:
 			window.plarray = window.plarrayFIX;
-			bootbox.confirm("Confirm Transfer *This can take quite a while and is best setup overnight!*", function(result) {
+			bootbox.confirm("This can take quite a while, are you sure your ready?", function(result) {
 				if (result == true){
 					blankscriptfiles();
 					doallplaylists(window.plarray);
