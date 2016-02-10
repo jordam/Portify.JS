@@ -51,7 +51,7 @@ function doloadstep(){
 function newPlaylist(name){
 	console.log(name);
 	$('#new-playlist').click();
-	$("paper-input[label='Name']").val(name);
+	$("paper-input.playlist-name").val(name);
 	$("paper-button[data-action='save']").click();
 	setTimeout(runPLPause, 1000);
 }
@@ -61,6 +61,8 @@ function runPLPause(){
 
 function addSongToPlaylist(song, artist, playlist){
 	$("button[name='add-duplicate-songs']").click();
+	
+	clearwaves();
 	window.lastartist = window.currartist;
 	window.currartist = artist;
 	window.location='https://play.google.com/music/listen?u=0#/sr/' + encodeURIComponent(song + ' - ' + artist);
@@ -412,10 +414,15 @@ function blankscriptfiles(){
 	removejscssfile('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', "js");
 }
 
-// Clean up considerations to patch memory leak
-// $("div.wave-container").remove()
-// $("div.wave").remove()
-// Still have some supersized array of track info stored deep inside the machine. Also Polymer animate is still lagging with cleared waves
+function clearwaves(){
+	x = $("div.wave-container").parent().parent()[0];
+	if (x !== undefined){
+		rl = x.ripples.length;
+		for (var i = 0; i < rl; i++) {
+			x.removeRipple(x.ripples[0]);
+		}
+	}
+}
 
 function dospotimport(){
 	doprompt();
