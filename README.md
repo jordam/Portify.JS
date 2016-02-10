@@ -15,14 +15,14 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 
 1. Drag the big <code>Portify.JS</code> link from [< THIS PAGE >](https://rawgit.com/jordam/Portify.JS/master/helper.html) to your bookmarks.
 
-2. Open https://play.google.com/music/listen in its own window in chrome.
+2. Open https://play.google.com/music/listen in its own window.
 
-3. Click <code>Portify.JS</code> in on your bookmarks bar
+3. Click <code>Portify.JS</code> on your bookmarks bar
 
 
 ### Notes
 
-Portify.JS runs in the Chrome browser. Others might work, but I'm recommending chrome currently
+Portify.JS has been confirmed to work in Chrome, Firefox, and IE. It should work on most browsers at this point.
 
 The script will start by pulling in the data from Spotify, it will then create the playlist(s) and begin populating them with tracks.
 
