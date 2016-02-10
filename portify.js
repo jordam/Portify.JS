@@ -1,4 +1,4 @@
-//Portify.JS V0.04
+//Portify.JS V0.05
 function addscript(url, cbname){
 	var script = document.createElement('script');
 	script.src = url;
@@ -25,7 +25,6 @@ function removejscssfile(filename, filetype){
 	}
 }
 
-window.loadstep = 0;
 function doloadstep(){
 	switch (window.loadstep) {
 		case 0:
@@ -65,35 +64,24 @@ function addSongToPlaylist(song, artist, playlist){
 	clearwaves();
 	window.lastartist = window.currartist;
 	window.currartist = artist;
-	window.location='https://play.google.com/music/listen?u=0#/sr/' + encodeURIComponent(song + ' - ' + artist);
+	$("sj-search-box")[0].fire('query', {query: song + ' - ' + artist});
+	// Old school //window.location='https://play.google.com/music/listen?u=0#/sr/' + encodeURIComponent(song + ' - ' + artist);
 	setTimeout(function() {
 		pollfornewsong(song, artist, playlist);
-	}, 500);
+	}, 100);
 	window.pollcount = 0;
+	window.pollstart = new Date().getTime();
 }
 function pollfornewsong(song, artist, playlist){
 	window.pollcount = window.pollcount + 1;
 	var repoll = true;
-	if($(".search-view:containsNC('" + artist + "')").length > 0){
-		if($(".search-view:containsNC('" + song + "')").length > 0 || window.lastartist != window.currartist){
-			addSongCallback(song, artist, playlist);
-			repoll = false;
-		} else {
-			if (window.pollcount > 8){
-				addSongCallback(song, artist, playlist);
-				repoll = false;
-			}
-		}
-	} else {
-		if ($(".g-content:contains('No results found')").length && pollcount > 6){
-			addSongCallback(song, artist, playlist);
-			repoll = false;
-		} else{
-			if (window.pollcount > 12){
-				repoll = false;
-				addSongCallback(song, artist, playlist);
-			}
-		}
+	if ($("paper-spinner:visible").length == 0){
+		addSongCallback(song, artist, playlist);
+		repoll = false;
+	}
+	if (window.pollcount > 59 || ((new Date().getTime() - pollstart)/1000) > 6){
+		repoll = false;
+		addSongCallback(song, artist, playlist);
 	}
 	if (repoll == true){
 		setTimeout(function() {
@@ -137,7 +125,6 @@ function doclick(el){
 	);
 	el.dispatchEvent(ev);
 }
-window.items = {};
 function itemCB(resp, vardump, donecb){
 	console.log(resp);
 	console.log(vardump);
@@ -228,7 +215,15 @@ function tickLauncher(){
 	if (window.RunSong == true){
 		window.RunSong = false;
 		dosong = window.tlmake.shift();
+		if (dosong === undefined){
+			var end = new Date().getTime();
+			var time = end - window.portifystart;
+			alert("Import Completed ");
+			alert('Runtime: ' + time/1000);
+						clearInterval(window.ticker);
+		} else {
 		addSongToPlaylist(dosong[0], dosong[1], dosong[2]);
+		}
 	}
 	if (window.RunPL == true){
 		window.RunPL = false;
@@ -239,8 +234,6 @@ function tickLauncher(){
 		}
 	}
 }
-
-window.modalstage = 0;
 
 function doprompt(){
 	mds = window.modalstage;
@@ -257,7 +250,7 @@ function doprompt(){
 		case 1:
 			bootbox.prompt("Enter the OAUTH token here", function(result) {                
 			  if (result === null) {                                             
-				window.modalstage = 0;
+				window.location.reload();
 			  } else {
 				window.spotifyoauth = result;
 				doprompt();
@@ -290,7 +283,7 @@ function doprompt(){
 			window.plprefix = "";
 			bootbox.prompt("Name the playlist", function(result) {                
 			  if (result === null || result == "") {                                             
-				window.pllinkname = "";
+				window.location.reload();
 			  } else {
 				window.pllinkname = result;
 				doprompt();
@@ -299,8 +292,8 @@ function doprompt(){
 			break;
 		case 4:
 			bootbox.prompt("Paste the link in here", function(result) {                
-			  if (result === null) {                                             
-				window.modalstage = 0;
+			  if (result === null) {
+				window.location.reload();
 			  } else {
 				var res = result.split("/");
 				var atog = false;
@@ -399,9 +392,10 @@ function doprompt(){
 			bootbox.confirm("This can take quite a while, are you sure your ready?", function(result) {
 				if (result == true){
 					blankscriptfiles();
+					window.portifystart = new Date().getTime();
 					doallplaylists(window.plarray);
 				} else{
-					location.reload();
+					window.location.reload();
 				}
 			});
 			break;
@@ -427,4 +421,13 @@ function clearwaves(){
 function dospotimport(){
 	doprompt();
 }
-doloadstep();
+// Need to figure out how to inject 
+// DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;} 
+// Into the scope of listen.js
+function portifyjs(){
+	window.loadstep = 0;
+	window.modalstage = 0;
+	window.items = {};
+	doloadstep();
+}
+portifyjs();
