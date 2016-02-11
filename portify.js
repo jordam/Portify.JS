@@ -1,4 +1,4 @@
-//Portify.JS V0.05
+//Portify.JS V0.06
 function addscript(url, cbname){
 	var script = document.createElement('script');
 	script.src = url;
