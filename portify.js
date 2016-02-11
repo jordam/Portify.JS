@@ -45,7 +45,7 @@ function doloadstep(){
 	}
 	window.loadstep = window.loadstep + 1;
 }
-			
+
 
 function newPlaylist(name){
 	console.log(name);
@@ -60,7 +60,7 @@ function runPLPause(){
 
 function addSongToPlaylist(song, artist, playlist){
 	$("button[name='add-duplicate-songs']").click();
-	
+
 	clearwaves();
 	window.lastartist = window.currartist;
 	window.currartist = artist;
@@ -93,7 +93,7 @@ function addSongCallback(song, artist, playlist){
 	try{
 		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
 		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
-		
+
 		doclick($("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);
 		doclick($("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]);
 		//doclick() Click dupe confirm?
@@ -249,8 +249,8 @@ function doprompt(){
 			}
 			break;
 		case 1:
-			bootbox.prompt("Enter the OAUTH token here", function(result) {                
-			  if (result === null) {                                             
+			bootbox.prompt("Enter the OAUTH token here", function(result) {
+			  if (result === null) {
 				window.location.reload();
 			  } else {
 				window.spotifyoauth = result;
@@ -259,7 +259,7 @@ function doprompt(){
 			});
 			break;
 		case 2:
-		
+
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -282,8 +282,8 @@ function doprompt(){
 			break;
 		case 3:
 			window.plprefix = "";
-			bootbox.prompt("Name the playlist", function(result) {                
-			  if (result === null || result == "") {                                             
+			bootbox.prompt("Name the playlist", function(result) {
+			  if (result === null || result == "") {
 				window.location.reload();
 			  } else {
 				window.pllinkname = result;
@@ -292,7 +292,7 @@ function doprompt(){
 			});
 			break;
 		case 4:
-			bootbox.prompt("Paste the link in here", function(result) {                
+			bootbox.prompt("Paste the link in here", function(result) {
 			  if (result === null) {
 				window.location.reload();
 			  } else {
@@ -320,8 +320,8 @@ function doprompt(){
 			});
 			break;
 		case 5: //Different route to get here
-			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {                
-			  if (result === null || result == "") {                                             
+			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {
+			  if (result === null || result == "") {
 				window.plprefix = "";
 				doprompt();
 			  } else {
@@ -361,31 +361,41 @@ function doprompt(){
 			break;
 		case 8:
 			if (window.plarray.length > 0){
-				localcopy = window.plarray.shift();
-				bootbox.confirm({
+				var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
+				for(i in window.plarray){
+					var div = $("<div>", {class:"checkbox"})
+					var label = $("<label>",{for:"playlist-"+i});
+					var input = $("<input>", {name:"playlist", id:"playlist-"+i, value:window.plarray[i], type:"checkbox", checked:"checked"});
+					label.append(input).append(''+window.plarray[i]);
+					div.append(label);
+					playlist.append(div);
+				}
+				console.log("playlist built"+playlist.length);
+				bootbox.dialog({
+					title: "Select Playlist to Include",
+					message: playlist.prop('outerHTML'),
 					buttons: {
-						confirm: {
-							label: 'Skip It',
-							className: 'confirm-button-class'
-						},
 						cancel: {
-							label: 'Copy It',
-							className: 'cancel-button-class'
+							label: 'Back',
+							className: 'cancel-button-class',
+							callback: function () {
+								window.modalstage = window.modalstage - 1;
+								doprompt();
+							}
+						},
+						confirm: {
+							label: 'Go',
+							className: 'confirm-button-class',
+							callback: function () {
+								window.plarrayFIX = [];
+								$("input[name='playlist']:checked").each(function(){
+									window.plarrayFIX.push($(this).val());
+								});
+								doprompt()
+							}
 						}
-					},
-					message: "Skip " + localcopy + "?",
-					callback: function(result) {
-						if (result == false){
-							window.plarrayFIX.push(localcopy);
-						} else {
-							window.plarrayNO.push(localcopy);
-						}
-						doprompt();
 					}
 				});
-				if (window.plarray.length > 0){
-					window.modalstage = window.modalstage - 1;
-				}
 			}
 			break;
 		case 9:
@@ -431,8 +441,8 @@ function dospotimport(){
 	window.canImage = false;
 	doprompt();
 }
-// Need to figure out how to inject 
-// DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;} 
+// Need to figure out how to inject
+// DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;}
 // Into the scope of listen.js
 function portifyjs(mstage){
 	window.loadstep = 0;
