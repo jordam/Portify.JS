@@ -15,12 +15,18 @@ function addscript(url, cbname){
 	script.onload =function(){cbname()};
 	document.getElementsByTagName('head')[0].appendChild(script);
 }
-if (document.readyState == 'complete' && window.portifyExpress != true){
+if ((document.readyState == 'complete' || document.readyState == 'interactive') && window.portifyExpress != true){
 	window.portifyExpress = true;
 	if (window.jQuery === undefined){
 		addscript('https://code.jquery.com/jquery-1.11.0.min.js', locationmapper);
 	} else {
 		locationmapper();
+	}
+} else {
+	if (window.canImage === true){
+		   addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
+		   window.modalstage = 2;
+		   dospotimport();
 	}
 }
 function locationmapper(){
