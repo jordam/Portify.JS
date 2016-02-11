@@ -236,6 +236,13 @@ function tickLauncher(){
 	}
 }
 
+function playlistToggle(source) {
+  checkboxes = document.getElementsByName('playlist');
+  for (var i = 0; i < checkboxes.length; i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+
 function doprompt(){
 	mds = window.modalstage;
 	switch (mds) {
@@ -337,15 +344,15 @@ function doprompt(){
 			bootbox.confirm({
 				buttons: {
 					confirm: {
-						label: 'Yes',
+						label: 'Pick Playlists',
 						className: 'confirm-button-class'
 					},
 					cancel: {
-						label: 'No',
+						label: 'Import Everything',
 						className: 'cancel-button-class'
 					}
 				},
-				message: "Would you like to skip any of the " + window.plarray.length.toString() + " playlists?",
+				message: "I see " + window.plarray.length.toString() + " playlists.<br>Do you want to pick which playlists to import or would you rather import everything?",
 				callback: function(result) {
 					if (result == false){
 						window.modalstage = window.modalstage + 1;
@@ -362,6 +369,12 @@ function doprompt(){
 		case 8:
 			if (window.plarray.length > 0){
 				var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
+				var div = $("<div>", {class:"checkbox"})
+				var label = $("<label>",{for:"plToggle"});
+				var input = $("<input>", {name:"plToggle", id:"plToggle", onclick:"playlistToggle(this);", type:"checkbox", checked:"checked"});
+				label.append(input).append('[Check/Uncheck All]');
+				div.append(label);
+				playlist.append(div);
 				for(i in window.plarray){
 					var div = $("<div>", {class:"checkbox"})
 					var label = $("<label>",{for:"playlist-"+i});
