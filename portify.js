@@ -221,6 +221,7 @@ function tickLauncher(){
 			alert("Import Completed ");
 			alert('Runtime: ' + time/1000);
 			window.canImage = true;
+			window.portifyWorking = false;
 			clearInterval(window.ticker);
 		} else {
 		addSongToPlaylist(dosong[0], dosong[1], dosong[2]);
@@ -463,8 +464,15 @@ function portifyjs(mstage){
 	window.items = {};
 	doloadstep();
 }
-if (window.spotifyoauth === undefined){
-	portifyjs(0);
-} else {
-	portifyjs(2)
+if (window.portifyWorking != true){
+	if (window.location.host == "play.google.com"){
+		window.portifyWorking = true;
+		if (window.spotifyoauth === undefined){
+			portifyjs(0);
+		} else {
+			portifyjs(2)
+		}
+	} else {
+		window.location = "https://play.google.com/music/listen";
+	}
 }
