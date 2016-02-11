@@ -220,7 +220,8 @@ function tickLauncher(){
 			var time = end - window.portifystart;
 			alert("Import Completed ");
 			alert('Runtime: ' + time/1000);
-						clearInterval(window.ticker);
+			window.canImage = true;
+			clearInterval(window.ticker);
 		} else {
 		addSongToPlaylist(dosong[0], dosong[1], dosong[2]);
 		}
@@ -427,6 +428,7 @@ function deleteMatchingPlaylists(search){ // Used to undo my test playlists. Wil
 }
 
 function dospotimport(){
+	window.canImage = false;
 	doprompt();
 }
 // Need to figure out how to inject 
