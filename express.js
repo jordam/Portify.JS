@@ -15,12 +15,14 @@ function addscript(url, cbname){
 	script.onload =function(){cbname()};
 	document.getElementsByTagName('head')[0].appendChild(script);
 }
-if (window.jQuery === undefined){
-	addscript('https://code.jquery.com/jquery-1.11.0.min.js', locationmapper);
-} else {
-	locationmapper();
+if (document.readyState == 'complete' && window.portifyExpress != true){
+	window.portifyExpress = true;
+	if (window.jQuery === undefined){
+		addscript('https://code.jquery.com/jquery-1.11.0.min.js', locationmapper);
+	} else {
+		locationmapper();
+	}
 }
-
 function locationmapper(){
 	switch(window.location.pathname) {
 		case "/music/portifyjs":
