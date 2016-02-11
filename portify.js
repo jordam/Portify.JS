@@ -418,16 +418,28 @@ function clearwaves(){
 	}
 }
 
+function deleteMatchingPlaylists(search){ // Used to undo my test playlists. Will delete all playlists containing the search string
+	$('a:contains(' + search + ')').each(function( index ) {
+		$(this).find('paper-icon-button').first().click()
+		doclick($("div[class='goog-menuitem-content']:contains('Delete playlist')")[0])
+		$('button:contains(Delete playlist)').click()
+	});
+}
+
 function dospotimport(){
 	doprompt();
 }
 // Need to figure out how to inject 
 // DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;} 
 // Into the scope of listen.js
-function portifyjs(){
+function portifyjs(mstage){
 	window.loadstep = 0;
-	window.modalstage = 0;
+	window.modalstage = mstage;
 	window.items = {};
 	doloadstep();
 }
-portifyjs();
+if (window.spotifyoauth === undefined){
+	portifyjs(0);
+} else {
+	portifyjs(2)
+}
