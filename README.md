@@ -21,15 +21,13 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 
 1. Drag the big <code>Portify.JS</code> link for other browsers from [< THIS PAGE >](https://rawgit.com/jordam/Portify.JS/master/helper.html) to your bookmarks.
 
-2. Go to https://play.google.com/music/listen
-
-3. Click the bookmark, follow the instructions on the page to get your oauth token.
+2. Click the bookmark twice. Follow the instructions on the page to get your oauth token.
 
 ### Notes
 
 Portify.JS has been confirmed to work in Chrome, Firefox, and IE. It should work on most browsers at this point.
 
-The Chrome version is the most light weight. It will disable images and animations in the google music player before running.
+The Chrome version is more sophisticated and light weight. It will get your oauth token for you and will disable images and animations in the google music player before running.
 
 The app runs real-time and takes around a second a song.
 
