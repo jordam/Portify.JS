@@ -1,6 +1,6 @@
 # Portify.JS
 
-Transfer Spotify playlists to Google Play Music.
+Transfer playlists between Spotify and Google Music both ways!
 + No Downloads
 + No Passwords
 + Copy Your Playlists
@@ -25,12 +25,12 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 
 ### Notes
 
-Portify.JS has been confirmed to work in Chrome, Firefox, and IE. It should work on most browsers at this point.
+Portify.JS has been confirmed to work in Chrome, Firefox, and IE (at on point). It should work on most browsers, but try chrome if its not working for you.
 
 The Chrome version is more sophisticated and light weight. It will get your oauth token for you and will disable images and animations in the google music player before running.
 
-The app runs real-time and takes around a second a song.
+The app runs real-time and takes around a second a song to go spotify -> google music. Google music -> spotify is faster. 
 
-A demo video is availible here -> [Demo Video](http://screencast-o-matic.com/u/VbjP/portify_js)
+An old demo video is availible here -> [Demo Video](http://screencast-o-matic.com/u/VbjP/portify_js)
 
 By using Portify.JS you may violate both Spotify's and Google's Terms of Service. You agree that you are using Portify.JS on your own risk. The author does not accept liability (as far as permitted by law) for any loss arising from any use of this tool. If you choose not to agree to these terms, then you may not use this tool.
