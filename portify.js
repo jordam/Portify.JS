@@ -1,4 +1,8 @@
-//Portify.JS V0.07
+//Portify.JS V1.00
+
+//TODO
+// Incorporate g-scrape.js to allow exporting FROM google play.
+// Perhaps create a playlist sync feature. Check playlists on both systems and non destructive merge the two.
 
 
 function addscript(url, cbname){  //Inject a javascript script into the dom
@@ -51,11 +55,56 @@ function doclick(el){ // Fake a click on an element the fancy way
 	el.dispatchEvent(ev);
 }
 
+function exportToCsv(filename, rows) {
+	var processRow = function (row) {
+		var finalVal = '';
+		for (var j = 0; j < row.length; j++) {
+			if (row[j] === undefined){
+				row[j] = '';
+			}
+			var innerValue = row[j] === null ? '' : row[j].toString();
+			if (row[j] instanceof Date) {
+				innerValue = row[j].toLocaleString();
+			};
+			var result = innerValue.replace(/"/g, '""');
+			if (result.search(/("|,|\n)/g) >= 0)
+				result = '"' + result + '"';
+			if (j > 0)
+				finalVal += ',';
+			finalVal += result;
+		}
+		return finalVal + '\n';
+	};
+
+	var csvFile = '';
+	for (var i = 0; i < rows.length; i++) {
+		csvFile += processRow(rows[i]);
+	}
+
+	var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+	if (navigator.msSaveBlob) { // IE 10+
+		navigator.msSaveBlob(blob, filename);
+	} else {
+		var link = document.createElement("a");
+		if (link.download !== undefined) { // feature detection
+			// Browsers that support HTML5 download attribute
+			var url = URL.createObjectURL(blob);
+			link.setAttribute("href", url);
+			link.setAttribute("download", filename);
+			link.style.visibility = 'hidden';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
+	}
+}
+
 function doloadstep(){ // Load in the required libraries in the proper order
 	switch (window.loadstep) {
 		case 0:
 			addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
 			addscript('https://code.jquery.com/jquery-1.11.0.min.js', doloadstep);
+			addscript("https://rawgit.com/jordam/Portify.JS/master/g-scrape.js");
 			break;
 		case 1:
 			addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', doloadstep);
@@ -152,6 +201,42 @@ function plComplete(dat, pllink){ // Called when a url loaded playlist has compl
 	loadpls();
 }
 
+function getSpotDirect(url, donecb){
+	$.ajax(url, {
+		dataType: 'json',
+		headers: {
+			'Authorization': 'Bearer ' + spotifyoauth
+		},
+		success: function(r) {
+			donecb(r);
+		},
+		error: function(r) {
+			bootbox.alert('Spotify Error (most likely an invalid or expired oauth token.)', function() {
+				blankscriptfiles();
+			});
+		}
+	});
+}
+
+function postSpotDirect(url, data, donecb){
+	$.ajax(url, {
+		method: "POST",
+		data: JSON.stringify(data),
+		dataType: 'json',
+		headers: {
+			'Authorization': 'Bearer ' + spotifyoauth
+		},
+		success: function(r) {
+			donecb(r);
+		},
+		error: function(r) {
+			bootbox.alert('Spotify Error (most likely an invalid or expired oauth token.)', function() {
+				blankscriptfiles();
+			});
+		}
+	});
+}
+
 function getItems(url, donevar, donecb, build) { // Load in items from a spotify api endpoint. Automatically follows next links, compiles data, and pushes donecb(data, donevar) in the end
 	$.ajax(url, {
 		dataType: 'json',
@@ -242,8 +327,42 @@ function tickLauncher(){ // This function is called regularly on a timer to kick
 		}
 		window.plinfo['RunSong'] = true; //All playlists have been created, run songs now.
 	}
+
 }
 
+function loadandscrapepl(){
+	console.log(window.gplexport['exportpls']);
+	window.gplexport['plon'] = window.gplexport['exportpls'].shift();
+	if (window.gplexport['plon'] != undefined){
+		$('a[data-type=pl]').each(function(){
+			if($(this).text().trim() == window.gplexport['plon']){
+				location.hash = "/pl/" + $(this).attr('data-id');
+				waitForGPLload(window.gplexport['plon'] + '');
+				return false;
+			}
+		});
+	} else {
+		doprompt(); // Scrape complete
+	}
+}
+
+function waitForGPLload(plname){
+	if($("a.selected[data-id=" + unescape(location.hash.split("/")[2]).replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') + "]").length > 0){ // If we can find a selected <a> element on the page with a data id matching the hash location we have loaded the page
+		setTimeout(function(){window.scrapeSongs(function(a){gplDidScrape(a, plname)})}, 500);
+	} else {
+		setTimeout(function(){waitForGPLload(plname)}, 100);
+	}
+}
+
+function gplDidScrape(tarrayobj, plname){
+	var plobj = {};
+	plobj['xname'] = window.gplexport['plon'];
+	plobj['name'] = plname;
+	plobj['tracks'] = tarrayobj;
+	console.log(tarrayobj);
+	window.gplexport['pldone'].push(plobj);
+	loadandscrapepl();
+}
 
 function gotPlaylists(playlists, rstr){ // Callback for when users personal playlists are loaded
 	window.plinfo['mypls'] = playlists;
@@ -274,32 +393,43 @@ function playlistToggle(source) { // Toggle all checkboxes on the playlist selec
 function initmodal(){ // Initial questions
 	mds = window.modalstage;
 	switch (mds) {
-		case 0: // Oauth token instructions
-			bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check the checkbox at the top. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
-			break;
-		case 1: // Oauth token input page
-			bootbox.prompt("Enter the OAUTH token here", function(result) {
-			  if (result === null) {
-				window.location.reload();
-			  } else {
-				window.spotifyoauth = result;
-				doprompt();
-			  }
-			});
-			break;
-		case 2: // What are you importing?
-			bootbox.confirm({
+		case 0: // Initial Welcome
+			bootbox.dialog({
 				buttons: {
-					confirm: {
-						label: 'My Spotify Playlists',
-						className: 'confirm-button-class'
+					impmyspot: {
+					  label: "Import My Spotify Playlists",
+					  className: "btn-primary",
+					  callback: function() {
+						window.afterOauth = 'MyPL';
+						window.modalGo('Oauth', true);
+					  }
 					},
-					cancel: {
-						label: 'A Spotify Playlist Link',
-						className: 'cancel-button-class'
+					impotherspot: {
+					  label: "Import a Spotify Playlist From a Link",
+					  className: "btn-success",
+					  callback: function() {
+						window.afterOauth = 'PlLink';
+						window.modalGo('Oauth', true);
+					  }
+					},
+					exportgoogle: {
+					  label: "Export My Google Playlists",
+					  className: "btn-success",
+					  callback: function() {
+						//window.afterOauth = 'GPlExport';
+						window.modalGo('GPlExport', true);
+						
+					  }
+					},
+					googlepldelete: {
+					  label: "Bulk Delete Google Playlists",
+					  className: "btn-success",
+					  callback: function() {
+						window.modalGo('GPlDelete', true);
+					  }
 					}
 				},
-				message: "What are you importing today?",
+				message: "<h1>Welcome to Portify.JS<\/h1><br>What would you like to do today?",
 				callback: function(result) {
 					if (result == true){
 						// Importing my playlists
@@ -312,6 +442,221 @@ function initmodal(){ // Initial questions
 			});
 			break;
 	}
+}
+function Oauthmodal(){ // Oauth prompt
+	mds = window.modalstage;
+	switch (mds) {
+		case 0: // Oauth token instructions
+			if (window.spotifyoauth === undefined){
+				bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check all of the checkboxes. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
+			} else {
+				window.modalGo(window.afterOauth, true); // Skip oauth prompt if we have a token set
+			}
+			break;
+		case 1: // Oauth token input page
+			bootbox.prompt("Enter the OAUTH token here", function(result) {
+			  if (result === null) {
+				window.location.reload();
+			  } else {
+				window.spotifyoauth = result;
+				window.modalGo(window.afterOauth, true);
+			  }
+			});
+			break;
+	}
+}
+
+function gplexportmodal(){//Google playlist export dialog
+	mds = window.modalstage;
+	switch (mds) {
+		case 0: // Export all playlists or pick specific ones?
+			window.gplexport = {};
+			bootbox.confirm({
+				buttons: {
+					confirm: {
+						label: 'Pick Playlists',
+						className: 'confirm-button-class'
+					},
+					cancel: {
+						label: 'Export Everything',
+						className: 'cancel-button-class'
+					}
+				},
+				message: "I see " + $('a[data-type=pl]').length.toString() + " playlists.<br>Do you want to pick which playlists to export or would you rather export everything?",
+				callback: function(result) {
+					window.gplexport['specific'] = result;
+					doprompt();
+				}
+			});
+			break;
+		case 1: //
+			if (window.gplexport['specific']){
+				aa = [];$('a[data-type=pl]').each(function(){aa.push($(this).text().trim())});
+				playlistSelect(aa, "Select Playlist to Include", function(){ // Launch the playlist selector dialog, run the code below once confirmed
+					window.gplexport['exportpls'] = [];
+					$("input[name='playlist']:checked").each(function(){
+						window.gplexport['exportpls'].push($(this).val());
+					});
+					bootbox.alert('Ready?', doprompt);
+				});
+			} else {
+				aa = [];
+				$('a[data-type=pl]').each(function(){
+					aa.push($(this).text().trim())
+				});
+				window.gplexport['exportpls'] = aa;
+				bootbox.alert('Ready?', doprompt);
+			}
+			break;
+		case 2:
+			removejscssfile("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css", "css");
+			gplloadpls(window.gplexport['exportpls']);
+			break;
+		case 3:
+			addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
+			bootbox.confirm({
+				buttons: {
+					confirm: {
+						label: 'Export To .csv Dump',
+						className: 'confirm-button-class'
+					},
+					cancel: {
+						label: 'Push To Spotify',
+						className: 'cancel-button-class'
+					}
+				},
+				message: "Playlist loaded, what do you want to do with them?",
+				callback: function(result) {
+					if (result){
+						masterrows = [];
+						for(var i in window.gplexport['pldone']){ // For each playlist
+							pl = window.gplexport['pldone'][i]['name']; 
+							trs = window.gplexport['pldone'][i]['tracks']
+							for(var ib in trs){ // For each track
+								srow = [pl];
+								for(var ic in trs[ib]){ // For each track var
+									srow.push(trs[ib][ic]);
+								}
+								masterrows.push(srow);
+							}
+						}
+						exportToCsv('playlists.csv', masterrows);
+						blankscriptfiles();
+					} else {
+						window.afterOauth = 'GtoSpot';
+						window.modalGo('Oauth', true);
+					}
+				}
+			});
+			break;
+	}
+}
+			
+function gplaytospotmodal(){
+	mds = window.modalstage;
+	switch (mds) {
+		case 0:
+			getSpotDirect("https://api.spotify.com/v1/me", function(dat){window.gplexport['spot_uid'] = dat["id"]; doprompt();});
+		case 1:
+			bootbox.prompt("Enter a prefix for your playlists like 'gplay-' (or leave blank to import them without altering their names)", function(result) {
+			  if (result === null || result == "") {
+				window.gplexport['prefix'] = "";
+				doprompt();
+			  } else {
+				window.gplexport['prefix'] = result;
+				doprompt();
+			  }
+			});
+			break;
+		case 2:
+			bootbox.confirm("Are you sure your ready?", function(result) {
+				if (result == true){;
+					//Set start time to time run
+					window.portifystart = new Date().getTime();
+					//Start loading
+					bootbox.alert('Now copying <span id=\"portnowcopying\"><\/span>', function() {
+					});
+					window.gplayToSpot();
+				} else{
+					window.location.reload();
+				}
+			});
+			break;
+	}
+}
+
+function gplayToSpot(){
+	for(var i in window.gplexport['pldone']){ // For each playlist
+		if (window.gplexport['pldone'][i]['created'] === undefined){
+			createSpotPl(window.gplexport['pldone'][i]);
+			return;
+		}
+	}
+	for(var i in window.gplexport['pldone']){ // For each playlist
+		if (window.gplexport['pldone'][i]['tdone'] === undefined){
+			trs = window.gplexport['pldone'][i]['tracks']
+			for(var ib in trs){ // For each track
+				if (trs[ib]['created'] === undefined){
+				 createSpotTrack(window.gplexport['pldone'][i]['id'], trs[ib]);
+				 return;
+				}
+			}
+			window.gplexport['pldone'][i]['tdone'] = true;
+		}
+	}
+	$("#portnowcopying").text("NULL; Import Complete");
+}
+
+function createSpotPl(plobj){
+	dat = {};
+	dat["name"] = window.gplexport['prefix'] + plobj['name']; 
+	dat["public"] = false;
+	$("#portnowcopying").text(dat["name"]);
+	postSpotDirect("https://api.spotify.com/v1/users/" + window.gplexport['spot_uid'] + "/playlists", dat, function(dbac){
+		plobj['created'] = true;
+		plobj['id'] = dbac['id'];
+		gplayToSpot();
+	});
+}
+
+function createSpotTrack(plid, trackobj){
+	tstr = "";
+	if (trackobj['artist'] != -1){
+		tstr = tstr + trackobj['artist'] + ' - ';
+	}
+	tstr = tstr + trackobj['title'];
+	$("#portnowcopying").text(tstr);
+	getSpotDirect("https://api.spotify.com/v1/search?q=" + encodeURI(tstr) + "&type=track&limit=1&offset=0", function(dbac){
+		for (i in dbac['tracks']['items']){
+			dat = "";
+			postSpotDirect("https://api.spotify.com/v1/users/" + window.gplexport['spot_uid'] + "/playlists/" + plid + "/tracks?uris=" + encodeURI(dbac['tracks']['items'][i]["uri"]), dat, function(dbac){
+				trackobj['created'] = true;
+				gplayToSpot();
+			})
+		}
+	});
+}
+
+function gplloadpls(plarray){
+	window.gplexport['pldone'] = [];
+	loadandscrapepl();
+	//window.gplexport['RunPL'] = true;
+}
+
+function gpldeletemodal(){ //Bulk playlist delete dialog
+	bootbox.prompt("<h1>Google Playlist Bulk Deletion<\/h1><br>This utility deletes playlists in bulk<br>If you type something into the prompt all playlists containing that string will be deleted instantly when you hit the button<br>This tool is VERY dangerous<br>If you want to delete everything type in \"EVERYTHING\" without quotes<br>If you leave the box blank nothing will happen", function(result) {
+			  if (result === null) {
+			  } else {
+				if (result.length > 1){
+					if (result == "EVERYTHING"){
+						deleteMatchingPlaylists('');
+						return;
+					}
+					deleteMatchingPlaylists(result);
+				}
+			  }
+			  blankscriptfiles();
+			});
 }
 
 function PlLinkmodal(){ // Playlist from link
@@ -401,68 +746,74 @@ function MyPLmodal(){ // Get Playlists From Self
 						//window.plarrayFIX = window.plarray;
 					}
 					else{
-						//window.plarrayFIX = [];
+						doprompt();
 					}
-					//window.plarrayNO = [];
-					doprompt();
 				}
 			});
 			break;
 		case 3:  // Self Playlist selection detail dialog
 			if (window.plinfo['mypls'].length > 0){
-				// Generate checkbox playlist selection elements
-				var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
-				var div = $("<div>", {class:"checkbox"})
-				var label = $("<label>",{for:"plToggle"});
-				var input = $("<input>", {name:"plToggle", id:"plToggle", onclick:"playlistToggle(this);", type:"checkbox", checked:"checked"});
-				label.append(input).append('[Check/Uncheck All]');
-				div.append(label);
-				playlist.append(div);
-				for(i in window.plinfo['mypls']){
-					var div = $("<div>", {class:"checkbox"})
-					var label = $("<label>",{for:"playlist-"+i});
-					var input = $("<input>", {name:"playlist", id:"playlist-"+i, value:window.plinfo['mypls'][i]['name'], type:"checkbox", checked:"checked"});
-					label.append(input).append(''+window.plinfo['mypls'][i]['name']);
-					div.append(label);
-					playlist.append(div);
+				var aar = [];
+				for (i in window.plinfo['mypls']){
+					aar.push(window.plinfo['mypls'][i]['name']);
 				}
-				//Dialog
-				bootbox.dialog({
-					title: "Select Playlist to Include",
-					message: playlist.prop('outerHTML'),
-					buttons: {
-						cancel: {
-							label: 'Back',
-							className: 'cancel-button-class',
-							callback: function () {
-								window.modalstage = window.modalstage - 2;
-								doprompt();
-							}
-						},
-						confirm: {
-							label: 'Go',
-							className: 'confirm-button-class',
-							callback: function () {
-								mypls = window.plinfo['mypls']
-								newpls = [];
-								$("input[name='playlist']:checked").each(function(){
-									for (i in mypls){
-										if (mypls[i]['name'] == $(this).val()){
-											newpls.push(mypls[i]);
-										}
-									}
-								});
-								window.plinfo['mypls'] = newpls;
-								window.confirmPlaylists(); //Lock in picked playlists
-								window.modalGo('confirm', true); // Go to the confirm diag
+				playlistSelect(aar, "Select Playlist to Include", function(){ // Launch the playlist selector dialog, run the code below once confirmed
+					mypls = window.plinfo['mypls']
+					newpls = [];
+					$("input[name='playlist']:checked").each(function(){
+						for (i in mypls){
+							if (mypls[i]['name'] == $(this).val()){
+								newpls.push(mypls[i]);
 							}
 						}
-					}
+					});
+					window.plinfo['mypls'] = newpls;
+					window.confirmPlaylists(); //Lock in picked playlists
+					window.modalGo('confirm', true); // Go to the confirm diag
 				});
 			}
 			break;
 	
 	}
+}
+
+function playlistSelect(plarray, message, confirmcb){ // Launch the playlist selection dialog with a playlist name array, a message, and a callback on confirmation
+	// Generate checkbox playlist selection elements
+	var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
+	var div = $("<div>", {class:"checkbox"})
+	var label = $("<label>",{for:"plToggle"});
+	var input = $("<input>", {name:"plToggle", id:"plToggle", onclick:"playlistToggle(this);", type:"checkbox", checked:"checked"});
+	label.append(input).append('[Check/Uncheck All]');
+	div.append(label);
+	playlist.append(div);
+	for(i in plarray){
+		var div = $("<div>", {class:"checkbox"})
+		var label = $("<label>",{for:"playlist-"+i});
+		var input = $("<input>", {name:"playlist", id:"playlist-"+i, value:plarray[i], type:"checkbox", checked:"checked"});
+		label.append(input).append(''+plarray[i]);
+		div.append(label);
+		playlist.append(div);
+	}
+	//Dialog
+	bootbox.dialog({
+		title: message,
+		message: playlist.prop('outerHTML'),
+		buttons: {
+			cancel: {
+				label: 'Back',
+				className: 'cancel-button-class',
+				callback: function () {
+					window.modalstage = window.modalstage - 2;
+					doprompt();
+				}
+			},
+			confirm: {
+				label: 'Go',
+				className: 'confirm-button-class',
+				callback: confirmcb
+			}
+		}
+	});
 }
 
 function confirmmodal(){ // Final Confirm
@@ -495,6 +846,9 @@ function doprompt(){ // Dialog master router
 		case "init":
 			initmodal();
 			break;
+		case "Oauth":
+			Oauthmodal();
+			break;
 		case "PlLink":
 			PlLinkmodal();
 			break;
@@ -503,6 +857,15 @@ function doprompt(){ // Dialog master router
 			break;
 		case "confirm":
 			confirmmodal();
+			break;
+		case "GPlDelete":
+			gpldeletemodal();
+			break;
+		case "GPlExport":
+			gplexportmodal();
+			break;
+		case "GtoSpot":
+			gplaytospotmodal();
 			break;
 	}
 	window.modalstage = window.modalstage + 1;
@@ -556,6 +919,6 @@ if (window.portifyWorking != true){
 	if (window.spotifyoauth === undefined){
 		portifyjs(0);
 	} else {
-		portifyjs(2)
+		portifyjs(2);
 	}
 }
