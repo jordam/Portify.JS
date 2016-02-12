@@ -95,48 +95,46 @@ function addSongToPlaylist(search, playlist){ // Add a song to a playlist. Fires
 	window.pollstart = new Date().getTime();
 }
 function pollfornewsong(playlist){ // Check if search has completed, call addSongCallback when it has
-	window.pollcount = window.pollcount + 1;
+	window.pollcount = window.pollcount + 1; // Add one to the poll count (used to timeout)
 	var repoll = true;
-	if ($("paper-spinner:visible").length == 0){
-		addSongCallback(playlist);
-		repoll = false;
+	if ($("paper-spinner:visible").length == 0){ // If our loading spinner not visible
+		addSongCallback(playlist); //Run the next step in the automation, clicking the song and adding it to the playlist
+		repoll = false; // Dont recheck anymore
 	}
-	if (window.pollcount > 59 || ((new Date().getTime() - pollstart)/1000) > 6){
-		repoll = false;
-		addSongCallback(playlist);
+	if (window.pollcount > 59 || ((new Date().getTime() - pollstart)/1000) > 6){ //If we have waited too long
+		repoll = false; //Dont recheck
+		addSongCallback(playlist); //Try with whats on the page now
 	}
-	if (repoll == true){
-		setTimeout(function() {
+	if (repoll == true){ // If we need to recheck
+		setTimeout(function() { //Recheck in a half sec
 			pollfornewsong(playlist);
 		}, 500);
 	}
 }
 function addSongCallback(playlist){ // Add the first song in a songlist-container on the page to a playlist
 	try{
-		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
-		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
-
-		doclick($("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);
-		doclick($("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]);
-		//doclick() Click dupe confirm?
+		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click(); //Click the more button on the song
+		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click(); //Run twice to fix buggyness
+		doclick($("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);    //Click add to playlist on the submenu
+		doclick($("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]); //Click on the playlist that it needs to add to
 	} catch(err){
 	}
-	window.plinfo['RunSong'] = true;
+	window.plinfo['RunSong'] = true; // Run the next song
 }
 
 function loadpls(){ // Grabs a playlist from plinfo['lists'] and loads the tracks for it. Runs startRunning() if all playlists have been loaded.
-	for(i in window.plinfo['lists']){
+	for(i in window.plinfo['lists']){ // Check our playlist list
 		pl = window.plinfo['lists'][i];
-		if (pl['loaded'] == false){
-			switch (pl['mode']){
-				case "link":
-					loadPlByLink(pl);
+		if (pl['loaded'] == false){ //If a playlist has not had its tracks loaded
+			switch (pl['mode']){ //Check its mode
+				case "link": //If its a link type playlist
+					loadPlByLink(pl); //Load the tracks for the playlist
 					break;
 			}
-			return;
+			return; //Drop out of loadpls
 		}
 	}
-	startRunning();
+	startRunning(); //If all playlists are loaded, startRunning the automation
 }
 
 function loadPlByLink(i){ // Load a playlist by its url
@@ -173,17 +171,17 @@ function getItems(url, donevar, donecb, build) { // Load in items from a spotify
 
 
 function itemCB(resp, donevar, donecb, build){ // Callback for getItems. Gets data from spotify response, parses, and loads next or goes to donecb depending on response.
-	if (resp.tracks == undefined){
-		ritems = resp.items;
+	if (resp.tracks == undefined){ // If we dont have tracks
+		ritems = resp.items; //We want the .items property
 		rnext = resp.next;
-	} else {
-		ritems = resp.tracks.items;
+	} else { //If we have a tracks property
+		ritems = resp.tracks.items; //We want the .tracks.items property
 		rnext = resp.tracks.next;
 	}
-	if (rnext != undefined){
-		getItems(rnext, donevar, donecb, build.concat(ritems));
-	} else {
-		donecb(build.concat(ritems), donevar);
+	if (rnext != undefined){ // If we have a next link
+		getItems(rnext, donevar, donecb, build.concat(ritems)); //Pull in more items
+	} else { //If we dont have a next link
+		donecb(build.concat(ritems), donevar); //We are done, call callback
 	}
 }
 
@@ -202,54 +200,53 @@ function endPortifyRun(){ // Shown to the user on completion. Simple stats and r
 	clearInterval(window.plinfo['ticker']);
 }
 function tickLauncher(){ // This function is called regularly on a timer to kick off playlist and song operations. It handles the state of the import process and what is happening moment to moment
-	if (window.plinfo['RunSong'] == true){
-		window.plinfo['RunSong'] = false;
-		if (window.plinfo['lists'].length){
-			dosong = window.plinfo['lists'][0]['tracks'].shift();
+	if (window.plinfo['RunSong'] == true){ // If we set to run song automation
+		window.plinfo['RunSong'] = false; // We have handled the request, set it to false to mark that
+		if (window.plinfo['lists'].length){ // If we have playlists that have not completed
+			dosong = window.plinfo['lists'][0]['tracks'].shift(); // Grab a song from the playlist we are working on
 			plname = window.plinfo['lists'][0]['name'];
-			if (dosong === undefined){
-				window.plinfo['lists'].shift();
-				if (window.plinfo['lists'].length == 0){
-					endPortifyRun();
-				} else {
-					window.plinfo['RunSong'] = true;
+			if (dosong === undefined){ //If our playlist didnt have any songs left to do
+				window.plinfo['lists'].shift(); // Delete the playlist from the list
+				if (window.plinfo['lists'].length == 0){ // If the list is blank now
+					endPortifyRun(); // We are done
+				} else { // If the list is not blank
+					window.plinfo['RunSong'] = true; // Run the next song
 				}
-			} else {
-				if (window.plinfo['lists']['mode'] != 'string'){
-					tname = dosong['track']['name'];
-					if (dosong['track']['artists'] != undefined){
+			} else { // If our playlist had songs
+				if (window.plinfo['lists']['mode'] != 'string'){ //Check the mode the playlist is set to. string mode is a special mode in development so if the mode is not string
+					tname = dosong['track']['name']; 
+					if (dosong['track']['artists'] != undefined){ //If we have an artist for the track we are working on
 						if (dosong['track']['artists'].length > 0){
-							addSongToPlaylist(tname+ ' - ' +dosong['track']['artists'][0]['name'], plname);
+							addSongToPlaylist(tname+ ' - ' +dosong['track']['artists'][0]['name'], plname); // Run the automation to add the song to the playlist. Has artist name included
 						} else {
 							addSongToPlaylist(tname, plname);
 						}
-					} else {
-						addSongToPlaylist(tname, plname);
+					} else { // No artist on the track
+						addSongToPlaylist(tname, plname); //Run add song automation, no artist though.
 					}
 				}
 			}
 		}
 	}
-	if (window.plinfo['RunPL'] == true){
-		window.plinfo['RunPL'] = false;
-		for(i in window.plinfo['lists']){
+	if (window.plinfo['RunPL'] == true){// If we are set to run playlist automation
+		window.plinfo['RunPL'] = false; // We have handled the request, set it to false to mark that
+		for(i in window.plinfo['lists']){ //Check the playlists
 			var plist = window.plinfo['lists'][i];
-			if (plist['createdpl']  == false){
-				plist['createdpl'] = true;
-				plist['name'] = plist['prefix'] + plist['name'];
-				plist['prefix'] = '';
-				newPlaylist(plist['name']);
-				return;
+			if (plist['createdpl']  == false){ //If a playlist has not been created
+				plist['createdpl'] = true; //Say we are handling it
+				plist['name'] = plist['prefix'] + plist['name']; //Update the name based on the prefix
+				plist['prefix'] = ''; //Blank the prefix as we have handled it
+				newPlaylist(plist['name']); // Run the automation to create a new playlist
+				return; // Drop out of this tick
 			}
 		}
-		window.plinfo['RunSong'] = true;
+		window.plinfo['RunSong'] = true; //All playlists have been created, run songs now.
 	}
 }
 
 
 function gotPlaylists(playlists, rstr){ // Callback for when users personal playlists are loaded
 	window.plinfo['mypls'] = playlists;
-	window.returncount = 0;
 	doprompt();
 }
 
@@ -277,16 +274,10 @@ function playlistToggle(source) { // Toggle all checkboxes on the playlist selec
 function initmodal(){ // Initial questions
 	mds = window.modalstage;
 	switch (mds) {
-		case 0:
-			if (window.location.hostname.indexOf('play.google.com') === -1){
-			bootbox.alert('This is supposed to be ran over on the google music player', function() {
-			blankscriptfiles();
-			});
-			} else {
-				bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check the checkbox at the top. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
-			}
+		case 0: // Oauth token instructions
+			bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check the checkbox at the top. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
 			break;
-		case 1:
+		case 1: // Oauth token input page
 			bootbox.prompt("Enter the OAUTH token here", function(result) {
 			  if (result === null) {
 				window.location.reload();
@@ -296,7 +287,7 @@ function initmodal(){ // Initial questions
 			  }
 			});
 			break;
-		case 2:
+		case 2: // What are you importing?
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -311,8 +302,10 @@ function initmodal(){ // Initial questions
 				message: "What are you importing today?",
 				callback: function(result) {
 					if (result == true){
+						// Importing my playlists
 						window.modalGo('MyPL', true);
 					} else {
+						// Importing playlist from link
 						window.modalGo('PlLink', true);
 					}
 				}
@@ -324,12 +317,12 @@ function initmodal(){ // Initial questions
 function PlLinkmodal(){ // Playlist from link
 	mds = window.modalstage;
 	switch (mds) {
-		case 0:
+		case 0: // Enter playlist Name
 			bootbox.prompt("Name the playlist", function(result) {
 			  if (result === null || result == "") {
 				window.location.reload();
 			  } else {
-				window.pllinkname = result
+				//Create playlist object with name set
 				newpl = {};
 				newpl['name'] = result;
 				newpl['mode'] = 'link';
@@ -341,11 +334,12 @@ function PlLinkmodal(){ // Playlist from link
 			  }
 			});
 			break;
-		case 1:
+		case 1: // Enter playlist link
 			bootbox.prompt("Paste the link in here", function(result) {
 			  if (result === null) {
 				window.location.reload();
 			  } else {
+				//Get user name and playlist name fron string, put it inot aaray
 				var res = result.split("/");
 				var atog = false;
 				var aaray = [];
@@ -358,14 +352,10 @@ function PlLinkmodal(){ // Playlist from link
 						atog = true;
 					}
 				}
+				// If we got the user and playlist correctly then set the link value on our playlist object from the prior stage and run the confirm dialog
 				if(aaray.length == 2){
-					window.returncount = 0;
 					window.plinfo['lists'][0]['link'] = "https://api.spotify.com/v1/users/" + aaray[0] + "/playlists/" + aaray[1];
-					window.modalGo('confirm', true);
-					//window.plarray = [];
-					//window.plarray.push(window.pllinkname);
-					//window.plarrayFIX = window.plarray;
-					//getItems("https://api.spotify.com/v1/users/" + aaray[0] + "/playlists/" + aaray[1], 'pl-' + window.pllinkname, plComplete);
+					window.modalGo('confirm', true);;
 				}
 			  }
 			});
@@ -376,7 +366,7 @@ function PlLinkmodal(){ // Playlist from link
 function MyPLmodal(){ // Get Playlists From Self
 	mds = window.modalstage;
 	switch (mds){
-		case 0:
+		case 0: // Enter playlist prefix
 			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {
 			  if (result === null || result == "") {
 				window.plinfo['prefix'] = "";
@@ -387,11 +377,11 @@ function MyPLmodal(){ // Get Playlists From Self
 			  }
 			});
 			break;
-		case 1:
+		case 1: // Fire off request to get self playlists from spotify, no dialog
 			window.plinfo['mypls'] = [];
 			getItems('https://api.spotify.com/v1/me/playlists', 'gotpl', gotPlaylists, []);
 			break;
-		case 2:
+		case 2: // Self Playlist state number of playlists and ask if import all or import some
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -418,8 +408,9 @@ function MyPLmodal(){ // Get Playlists From Self
 				}
 			});
 			break;
-		case 3:
+		case 3:  // Self Playlist selection detail dialog
 			if (window.plinfo['mypls'].length > 0){
+				// Generate checkbox playlist selection elements
 				var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
 				var div = $("<div>", {class:"checkbox"})
 				var label = $("<label>",{for:"plToggle"});
@@ -435,6 +426,7 @@ function MyPLmodal(){ // Get Playlists From Self
 					div.append(label);
 					playlist.append(div);
 				}
+				//Dialog
 				bootbox.dialog({
 					title: "Select Playlist to Include",
 					message: playlist.prop('outerHTML'),
@@ -461,8 +453,8 @@ function MyPLmodal(){ // Get Playlists From Self
 									}
 								});
 								window.plinfo['mypls'] = newpls;
-								window.confirmPlaylists();
-								window.modalGo('confirm', true);
+								window.confirmPlaylists(); //Lock in picked playlists
+								window.modalGo('confirm', true); // Go to the confirm diag
 							}
 						}
 					}
@@ -476,8 +468,11 @@ function MyPLmodal(){ // Get Playlists From Self
 function confirmmodal(){ // Final Confirm
 	bootbox.confirm("This can take quite a while, are you sure your ready?", function(result) {
 		if (result == true){
+			//Unload script files (mainly css)
 			blankscriptfiles();
+			//Set start time to time run
 			window.portifystart = new Date().getTime();
+			//Start loading
 			window.loadpls();
 		} else{
 			window.location.reload();
