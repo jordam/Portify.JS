@@ -1,14 +1,14 @@
 //Portify.JS V0.07
 
 
-function addscript(url, cbname){
+function addscript(url, cbname){  //Inject a javascript script into the dom
 	var script = document.createElement('script');
 	script.src = url;
 	script.type = 'text/javascript';
 	script.onload =function(){cbname()};
 	document.getElementsByTagName('head')[0].appendChild(script);
 }
-function addstyle(url){
+function addstyle(url){ //Inject a css stylesheet into the dom
 	var style = document.createElement('link');
 	style.rel = 'stylesheet';
 	style.href = url;
@@ -16,7 +16,7 @@ function addstyle(url){
 	document.getElementsByTagName('head')[0].appendChild(style);
 }
 
-function removejscssfile(filename, filetype){
+function removejscssfile(filename, filetype){ //Remove a javascript or css element from the dom
     var targetelement=(filetype=="js")? "script" : (filetype=="css")? "link" : "none"; //determine element type to create nodelist from
     var targetattr=(filetype=="js")? "src" : (filetype=="css")? "href" : "none" ; //determine corresponding attribute to test for
     var allsuspects=document.getElementsByTagName(targetelement);
@@ -27,80 +27,7 @@ function removejscssfile(filename, filetype){
 	}
 }
 
-function doloadstep(){
-	switch (window.loadstep) {
-		case 0:
-			addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
-			addscript('https://code.jquery.com/jquery-1.11.0.min.js', doloadstep);
-			break;
-		case 1:
-			addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', doloadstep);
-			$.extend($.expr[":"], {
-			  "containsNC": function(elem, i, match, array) {
-				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
-			  }
-			});
-			break;
-		case 2:
-			addscript('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', dospotimport);
-			break;
-	}
-	window.loadstep = window.loadstep + 1;
-}
-
-
-function newPlaylist(name){
-	$('#new-playlist').click();
-	$("paper-input.playlist-name").val(name);
-	$("paper-button[data-action='save']").click();
-	setTimeout(runPLPause, 1000);
-}
-function runPLPause(){
-	window.plinfo['RunPL'] = true;
-}
-
-function addSongToPlaylist(search, playlist){
-	$("button[name='add-duplicate-songs']").click();
-
-	clearwaves();
-	$("sj-search-box")[0].fire('query', {query: search});
-	setTimeout(function() {
-		pollfornewsong(playlist);
-	}, 100);
-	window.pollcount = 0;
-	window.pollstart = new Date().getTime();
-}
-function pollfornewsong(playlist){
-	window.pollcount = window.pollcount + 1;
-	var repoll = true;
-	if ($("paper-spinner:visible").length == 0){
-		addSongCallback(playlist);
-		repoll = false;
-	}
-	if (window.pollcount > 59 || ((new Date().getTime() - pollstart)/1000) > 6){
-		repoll = false;
-		addSongCallback(playlist);
-	}
-	if (repoll == true){
-		setTimeout(function() {
-			pollfornewsong(playlist);
-		}, 500);
-	}
-}
-function addSongCallback(playlist){
-	try{
-		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
-		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
-
-		doclick($("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);
-		doclick($("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]);
-		//doclick() Click dupe confirm?
-	} catch(err){
-	}
-	window.plinfo['RunSong'] = true;
-}
-
-function doclick(el){
+function doclick(el){ // Fake a click on an element the fancy way
 	var ev = document.createEvent("MouseEvent");
     ev.initMouseEvent(
         "mousedown",
@@ -124,7 +51,80 @@ function doclick(el){
 	el.dispatchEvent(ev);
 }
 
-function loadpls(){
+function doloadstep(){ // Load in the required libraries in the proper order
+	switch (window.loadstep) {
+		case 0:
+			addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
+			addscript('https://code.jquery.com/jquery-1.11.0.min.js', doloadstep);
+			break;
+		case 1:
+			addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', doloadstep);
+			$.extend($.expr[":"], {
+			  "containsNC": function(elem, i, match, array) {
+				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+			  }
+			});
+			break;
+		case 2:
+			addscript('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', dospotimport);
+			break;
+	}
+	window.loadstep = window.loadstep + 1;
+}
+
+
+function newPlaylist(name){ // Create new playlist by name.
+	$('#new-playlist').click();
+	$("paper-input.playlist-name").val(name);
+	$("paper-button[data-action='save']").click();
+	setTimeout(runPLPause, 1000);
+}
+function runPLPause(){ // Indicates that we can create the next playlist
+	window.plinfo['RunPL'] = true;
+}
+
+function addSongToPlaylist(search, playlist){ // Add a song to a playlist. Fires a search query and sets up pollfornewsong to poll for the search to complete
+	$("button[name='add-duplicate-songs']").click();
+
+	clearwaves();
+	$("sj-search-box")[0].fire('query', {query: search});
+	setTimeout(function() {
+		pollfornewsong(playlist);
+	}, 100);
+	window.pollcount = 0;
+	window.pollstart = new Date().getTime();
+}
+function pollfornewsong(playlist){ // Check if search has completed, call addSongCallback when it has
+	window.pollcount = window.pollcount + 1;
+	var repoll = true;
+	if ($("paper-spinner:visible").length == 0){
+		addSongCallback(playlist);
+		repoll = false;
+	}
+	if (window.pollcount > 59 || ((new Date().getTime() - pollstart)/1000) > 6){
+		repoll = false;
+		addSongCallback(playlist);
+	}
+	if (repoll == true){
+		setTimeout(function() {
+			pollfornewsong(playlist);
+		}, 500);
+	}
+}
+function addSongCallback(playlist){ // Add the first song in a songlist-container on the page to a playlist
+	try{
+		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
+		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
+
+		doclick($("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);
+		doclick($("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]);
+		//doclick() Click dupe confirm?
+	} catch(err){
+	}
+	window.plinfo['RunSong'] = true;
+}
+
+function loadpls(){ // Grabs a playlist from plinfo['lists'] and loads the tracks for it. Runs startRunning() if all playlists have been loaded.
 	for(i in window.plinfo['lists']){
 		pl = window.plinfo['lists'][i];
 		if (pl['loaded'] == false){
@@ -139,11 +139,11 @@ function loadpls(){
 	startRunning();
 }
 
-function loadPlByLink(i){
+function loadPlByLink(i){ // Load a playlist by its url
 	getItems(i['link'], i['link'], plComplete, []);
 }
 
-function plComplete(dat, pllink){
+function plComplete(dat, pllink){ // Called when a url loaded playlist has completed loading. Will set the tracks on the proper object in plinfo['lists'] and rerun loadpls()
 	for(i in window.plinfo['lists']){
 		pl = window.plinfo['lists'][i];
 		if (pl['link'] == pllink){
@@ -154,7 +154,7 @@ function plComplete(dat, pllink){
 	loadpls();
 }
 
-function getItems(url, donevar, donecb, build) {
+function getItems(url, donevar, donecb, build) { // Load in items from a spotify api endpoint. Automatically follows next links, compiles data, and pushes donecb(data, donevar) in the end
 	$.ajax(url, {
 		dataType: 'json',
 		headers: {
@@ -172,7 +172,7 @@ function getItems(url, donevar, donecb, build) {
 }
 
 
-function itemCB(resp, donevar, donecb, build){
+function itemCB(resp, donevar, donecb, build){ // Callback for getItems. Gets data from spotify response, parses, and loads next or goes to donecb depending on response.
 	if (resp.tracks == undefined){
 		ritems = resp.items;
 		rnext = resp.next;
@@ -187,12 +187,12 @@ function itemCB(resp, donevar, donecb, build){
 	}
 }
 
-function startRunning(){
+function startRunning(){ // Kicks off the timer that manages the actuall import process and starts importing
 	window.plinfo['RunSong'] = false;
 	window.plinfo['RunPL'] = true;
 	window.plinfo['ticker']=setInterval(tickLauncher,200);
 }
-function endPortifyRun(){
+function endPortifyRun(){ // Shown to the user on completion. Simple stats and reset code.
 	var end = new Date().getTime();
 	var time = end - window.portifystart;
 	alert("Import Completed ");
@@ -201,7 +201,7 @@ function endPortifyRun(){
 	window.portifyWorking = false;
 	clearInterval(window.plinfo['ticker']);
 }
-function tickLauncher(){
+function tickLauncher(){ // This function is called regularly on a timer to kick off playlist and song operations. It handles the state of the import process and what is happening moment to moment
 	if (window.plinfo['RunSong'] == true){
 		window.plinfo['RunSong'] = false;
 		if (window.plinfo['lists'].length){
@@ -247,13 +247,13 @@ function tickLauncher(){
 }
 
 
-function gotPlaylists(playlists, rstr){
+function gotPlaylists(playlists, rstr){ // Callback for when users personal playlists are loaded
 	window.plinfo['mypls'] = playlists;
 	window.returncount = 0;
 	doprompt();
 }
 
-function confirmPlaylists(){
+function confirmPlaylists(){ // Used to copy the playlists from mypls into the lists array in the proper format. Called once playlist selection is confirmed.
 	for (var i = 0; i < window.plinfo['mypls'].length; i++) {
 		newpl = {};
 		newpl['name'] = window.plinfo['mypls'][i]['name'];
@@ -267,7 +267,7 @@ function confirmPlaylists(){
 }
 
 
-function playlistToggle(source) {
+function playlistToggle(source) { // Toggle all checkboxes on the playlist selection dialog
   checkboxes = document.getElementsByName('playlist');
   for (var i = 0; i < checkboxes.length; i++) {
     checkboxes[i].checked = source.checked;
@@ -373,7 +373,7 @@ function PlLinkmodal(){ // Playlist from link
 	}
 }
 
-function MyPLmodal(){
+function MyPLmodal(){ // Get Playlists From Self
 	mds = window.modalstage;
 	switch (mds){
 		case 0:
@@ -473,7 +473,7 @@ function MyPLmodal(){
 	}
 }
 
-function confirmmodal(){ // Confirm run
+function confirmmodal(){ // Final Confirm
 	bootbox.confirm("This can take quite a while, are you sure your ready?", function(result) {
 		if (result == true){
 			blankscriptfiles();
@@ -485,7 +485,7 @@ function confirmmodal(){ // Confirm run
 	});
 }
 
-function modalGo(type, doprompts){
+function modalGo(type, doprompts){ // Pop into another dialog branch.
 	window.modalstage = 0;
 	window.modalmode = type;
 	if (doprompts === true){
@@ -493,7 +493,7 @@ function modalGo(type, doprompts){
 	}
 }
 
-function doprompt(){
+function doprompt(){ // Dialog master router
 	mds = window.modalstage;
 	mdm = window.modalmode;
 	switch (mdm){
@@ -512,13 +512,13 @@ function doprompt(){
 	}
 	window.modalstage = window.modalstage + 1;
 }
-function blankscriptfiles(){
+function blankscriptfiles(){ // Remove scripts and css files we have loaded.
 	removejscssfile("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css", "css");
 	removejscssfile('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', "js");
 	removejscssfile('https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', "js");
 }
 
-function clearwaves(){
+function clearwaves(){ // Clear ripple animations, they build up if we dont.
 	x = $("div.wave-container").parent().parent()[0];
 	if (x !== undefined){
 		rl = x.ripples.length;
@@ -536,16 +536,16 @@ function deleteMatchingPlaylists(search){ // Used to undo my test playlists. Wil
 	});
 }
 
-function dospotimport(){
+function dospotimport(){ // Launches internally once scripts are loaded.
 	window.canImage = false;
 	doprompt();
 }
-function setupPlInfo(){
+function setupPlInfo(){ // Init plinfo requirements
 	window.plinfo = {};
 	window.plinfo['lists'] = [];
 	window.plinfo['prefix'] = "";
 }
-function portifyjs(mstage){
+function portifyjs(mstage){ // Launch portify at init modal with stage mstage
 	window.loadstep = 0;
 	window.modalstage = mstage;
 	window.modalmode = "init";
@@ -553,15 +553,14 @@ function portifyjs(mstage){
 	setupPlInfo();
 	doloadstep();
 }
+if (window.location.host != "play.google.com"){
+	window.location = "https://play.google.com/music/listen";
+}
 if (window.portifyWorking != true){
-	if (window.location.host == "play.google.com"){
-		window.portifyWorking = true;
-		if (window.spotifyoauth === undefined){
-			portifyjs(0);
-		} else {
-			portifyjs(2)
-		}
+	window.portifyWorking = true;
+	if (window.spotifyoauth === undefined){
+		portifyjs(0);
 	} else {
-		window.location = "https://play.google.com/music/listen";
+		portifyjs(2)
 	}
 }
