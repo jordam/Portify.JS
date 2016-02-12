@@ -916,9 +916,5 @@ if (window.location.host != "play.google.com"){
 }
 if (window.portifyWorking != true){
 	window.portifyWorking = true;
-	if (window.spotifyoauth === undefined){
-		portifyjs(0);
-	} else {
-		portifyjs(1);
-	}
+	portifyjs(0);
 }
