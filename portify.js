@@ -201,7 +201,7 @@ function plComplete(dat, pllink){ // Called when a url loaded playlist has compl
 	loadpls();
 }
 
-function getSpotDirect(url, donecb){
+function getSpotDirect(url, donecb, errorcb){
 	$.ajax(url, {
 		dataType: 'json',
 		headers: {
@@ -211,14 +211,12 @@ function getSpotDirect(url, donecb){
 			donecb(r);
 		},
 		error: function(r) {
-			bootbox.alert('Spotify Error (most likely an invalid or expired oauth token.)', function() {
-				blankscriptfiles();
-			});
+			errorcb(r);
 		}
 	});
 }
 
-function postSpotDirect(url, data, donecb){
+function postSpotDirect(url, data, donecb, errorcb){
 	$.ajax(url, {
 		method: "POST",
 		data: JSON.stringify(data),
@@ -230,9 +228,7 @@ function postSpotDirect(url, data, donecb){
 			donecb(r);
 		},
 		error: function(r) {
-			bootbox.alert('Spotify Error (most likely an invalid or expired oauth token.)', function() {
-				blankscriptfiles();
-			});
+			errorcb(r);
 		}
 	});
 }
@@ -547,7 +543,7 @@ function gplaytospotmodal(){
 	mds = window.modalstage;
 	switch (mds) {
 		case 0:
-			getSpotDirect("https://api.spotify.com/v1/me", function(dat){window.gplexport['spot_uid'] = dat["id"]; doprompt();});
+			getSpotDirect("https://api.spotify.com/v1/me", function(dat){window.gplexport['spot_uid'] = dat["id"]; doprompt();}, function(){});
 		case 1:
 			bootbox.prompt("Enter a prefix for your playlists like 'gplay-' (or leave blank to import them without altering their names)", function(result) {
 			  if (result === null || result == "") {
@@ -607,6 +603,8 @@ function createSpotPl(plobj){
 		plobj['created'] = true;
 		plobj['id'] = dbac['id'];
 		gplayToSpot();
+	}, function(r){
+		alert("error creating playlists, cant recover.")
 	});
 }
 
@@ -615,15 +613,30 @@ function createSpotTrack(plid, trackobj){
 	if (trackobj['artist'] != -1){
 		tstr = tstr + trackobj['artist'] + ' - ';
 	}
+	trackobj['created'] = true;
 	tstr = tstr + trackobj['title'];
 	$("#portnowcopying").text(tstr);
 	getSpotDirect("https://api.spotify.com/v1/search?q=" + encodeURI(tstr) + "&type=track&limit=1&offset=0", function(dbac){
 		for (i in dbac['tracks']['items']){
 			dat = "";
 			postSpotDirect("https://api.spotify.com/v1/users/" + window.gplexport['spot_uid'] + "/playlists/" + plid + "/tracks?uris=" + encodeURI(dbac['tracks']['items'][i]["uri"]), dat, function(dbac){
-				trackobj['created'] = true;
+				
 				gplayToSpot();
-			})
+			},function(r){
+				if (r.status == 429){
+					setTimeout(function(){createSpotTrack(plid, trackobj)}, 2000);
+				} else{
+					gplayToSpot();
+				}
+			});
+			return false;
+		}
+		gplayToSpot();
+	}, function(r){
+		if (r.status == 429){
+			setTimeout(function(){createSpotTrack(plid, trackobj)}, 2000);
+		} else {
+			gplayToSpot();
 		}
 	});
 }
