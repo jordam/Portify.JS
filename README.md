@@ -34,7 +34,7 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 
 ### Notes
 
-Portify.JS has been confirmed to work in Chrome, Firefox, and IE (at on point). It should work on most browsers, but try chrome if its not working for you.
+Portify.JS has been confirmed to work in Chrome, Firefox, and IE (at one point). It should work on most browsers, but try chrome if its not working for you.
 
 The Chrome version is more sophisticated and light weight. It will get your oauth token for you and will disable images and animations in the google music player before running.
 
