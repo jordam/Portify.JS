@@ -1,6 +1,4 @@
-//Portify.JS V0.06
-
-// In the middle of rewriting system to use window.plinfo as core playlist object!
+//Portify.JS V0.07
 
 
 function addscript(url, cbname){
