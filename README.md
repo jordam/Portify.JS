@@ -23,6 +23,13 @@ Setup is fast, go from reading this sentence to importing music in less then 60 
 
 2. Click the bookmark twice. Follow the instructions on the page to get your oauth token.
 
+### Features
++ Transfer your spotify playlists to google music
++ Transfer others spotify playlists to google music
++ Transfer your google music playlists to spotify
++ Export your google music playlists to a csv file (so you can import into other stuff)
++ Bulk delete google music playlists that contain a string or a prefix
+
 ### Notes
 
 Portify.JS has been confirmed to work in Chrome, Firefox, and IE (at on point). It should work on most browsers, but try chrome if its not working for you.
