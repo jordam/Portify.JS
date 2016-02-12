@@ -73,12 +73,13 @@ function spotifyCode(){
 function gplayTakeover(){
 	window.spotifyoauth = window.QueryString.spotifyoauth;
 	$.ajax({
-		url : 'https:\/\/play.google.com\/music\/listen?u\x3d0\x26',
+		url : 'https:\/\/play.google.com\/music\/listen?u\x3d0\x26hl\x3den-US',
 		dataType: "text",
 		success : function (data) {
 			window.htmldata = data;
-			window.listensrc = "https://" + window.htmldata.split("/listen.js")[0].split('https://')[window.htmldata.split("/listen.js")[0].split('https://').length-1] + "/listen.js";
-			window.sjsrc = "https://" + window.htmldata.split("/sj_srcs.js")[0].split('https://')[window.htmldata.split("/sj_srcs.js")[0].split('https://').length-1] + "/sj_srcs.js";
+			window.basejs = "https://" + window.htmldata.split("/listen.js")[0].split('https://')[window.htmldata.split("/listen.js")[0].split('https://').length-1] + "/";
+			window.listensrc = window.basejs + "listen.js";
+			window.sjsrc = window.basejs + "sj_srcs.js";
 			document.write(data.replace("listen.js", "").replace("sj_srcs.js",""));
 			$.ajax({
 					url : window.sjsrc,
