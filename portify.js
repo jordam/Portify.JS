@@ -1,4 +1,4 @@
-//Portify.JS V1.01
+//Portify.JS V1.02
 
 //TODO
 // Incorporate g-scrape.js to allow exporting FROM google play.
@@ -919,6 +919,6 @@ if (window.portifyWorking != true){
 	if (window.spotifyoauth === undefined){
 		portifyjs(0);
 	} else {
-		portifyjs(2);
+		portifyjs(1);
 	}
 }
