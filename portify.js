@@ -1,4 +1,8 @@
 //Portify.JS V0.06
+
+// In the middle of rewriting system to use window.plinfo as core playlist object!
+
+
 function addscript(url, cbname){
 	var script = document.createElement('script');
 	script.src = url;
@@ -48,48 +52,44 @@ function doloadstep(){
 
 
 function newPlaylist(name){
-	console.log(name);
 	$('#new-playlist').click();
 	$("paper-input.playlist-name").val(name);
 	$("paper-button[data-action='save']").click();
 	setTimeout(runPLPause, 1000);
 }
 function runPLPause(){
-	window.RunPL = true;
+	window.plinfo['RunPL'] = true;
 }
 
-function addSongToPlaylist(song, artist, playlist){
+function addSongToPlaylist(search, playlist){
 	$("button[name='add-duplicate-songs']").click();
 
 	clearwaves();
-	window.lastartist = window.currartist;
-	window.currartist = artist;
-	$("sj-search-box")[0].fire('query', {query: song + ' - ' + artist});
-	// Old school //window.location='https://play.google.com/music/listen?u=0#/sr/' + encodeURIComponent(song + ' - ' + artist);
+	$("sj-search-box")[0].fire('query', {query: search});
 	setTimeout(function() {
-		pollfornewsong(song, artist, playlist);
+		pollfornewsong(playlist);
 	}, 100);
 	window.pollcount = 0;
 	window.pollstart = new Date().getTime();
 }
-function pollfornewsong(song, artist, playlist){
+function pollfornewsong(playlist){
 	window.pollcount = window.pollcount + 1;
 	var repoll = true;
 	if ($("paper-spinner:visible").length == 0){
-		addSongCallback(song, artist, playlist);
+		addSongCallback(playlist);
 		repoll = false;
 	}
 	if (window.pollcount > 59 || ((new Date().getTime() - pollstart)/1000) > 6){
 		repoll = false;
-		addSongCallback(song, artist, playlist);
+		addSongCallback(playlist);
 	}
 	if (repoll == true){
 		setTimeout(function() {
-			pollfornewsong(song, artist, playlist);
+			pollfornewsong(playlist);
 		}, 500);
 	}
 }
-function addSongCallback(song, artist, playlist){
+function addSongCallback(playlist){
 	try{
 		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
 		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click();
@@ -99,7 +99,7 @@ function addSongCallback(song, artist, playlist){
 		//doclick() Click dupe confirm?
 	} catch(err){
 	}
-	window.RunSong = true;
+	window.plinfo['RunSong'] = true;
 }
 
 function doclick(el){
@@ -125,37 +125,45 @@ function doclick(el){
 	);
 	el.dispatchEvent(ev);
 }
-function itemCB(resp, vardump, donecb){
-	console.log(resp);
-	console.log(vardump);
-	window.resp = resp;
-	if (window.items[vardump] == undefined){
-		window.items[vardump] = [];
+
+function loadpls(){
+	for(i in window.plinfo['lists']){
+		pl = window.plinfo['lists'][i];
+		if (pl['loaded'] == false){
+			switch (pl['mode']){
+				case "link":
+					loadPlByLink(pl);
+					break;
+			}
+			return;
+		}
 	}
-	if (resp.tracks == undefined){
-		ritems = resp.items;
-		rnext = resp.next;
-	} else {
-		ritems = resp.tracks.items;
-		rnext = resp.tracks.next;
-	}
-	window.items[vardump] = window.items[vardump].concat(ritems);
-	if (rnext != undefined){
-		getItems(rnext, vardump, donecb);
-	} else {
-		console.log(donecb);
-		donecb(window.items[vardump]);
-	}
+	startRunning();
 }
 
-function getItems(url, vardump, donecb) {
+function loadPlByLink(i){
+	getItems(i['link'], i['link'], plComplete, []);
+}
+
+function plComplete(dat, pllink){
+	for(i in window.plinfo['lists']){
+		pl = window.plinfo['lists'][i];
+		if (pl['link'] == pllink){
+			pl['loaded'] = true;
+			pl['tracks'] = dat;
+		}
+	}
+	loadpls();
+}
+
+function getItems(url, donevar, donecb, build) {
 	$.ajax(url, {
 		dataType: 'json',
 		headers: {
 			'Authorization': 'Bearer ' + spotifyoauth
 		},
 		success: function(r) {
-			itemCB(r, vardump, donecb);
+			itemCB(r, donevar, donecb, build);
 		},
 		error: function(r) {
 			bootbox.alert('Spotify Error (most likely an invalid or expired oauth token.)', function() {
@@ -165,77 +173,101 @@ function getItems(url, vardump, donecb) {
 	});
 }
 
-function gotPlaylists(playlists){
-	window.plarray = [];
-	window.returncount = 0;
-	for (var i = 0; i < playlists.length; i++) {
-		window.plarray.push(playlists[i]['name']);
-		getItems(playlists[i]['href'], 'pl-' + playlists[i]['name'], plComplete);
+
+function itemCB(resp, donevar, donecb, build){
+	if (resp.tracks == undefined){
+		ritems = resp.items;
+		rnext = resp.next;
+	} else {
+		ritems = resp.tracks.items;
+		rnext = resp.tracks.next;
+	}
+	if (rnext != undefined){
+		getItems(rnext, donevar, donecb, build.concat(ritems));
+	} else {
+		donecb(build.concat(ritems), donevar);
 	}
 }
 
-function plComplete(items){
-	window.returncount = window.returncount + 1;
-	if (window.plarray.length == window.returncount){
-		doprompt();
-	}
+function startRunning(){
+	window.plinfo['RunSong'] = false;
+	window.plinfo['RunPL'] = true;
+	window.plinfo['ticker']=setInterval(tickLauncher,200);
 }
-function doallplaylists(plobject){
-	window.tlmake = [];
-	window.plmake = [];
-	for (var i = 0; i < plobject.length; i++) {
-		tracks = window.items['pl-' + plobject[i]];
-		plname = window.plprefix + plobject[i];
-		console.log(plobject[i]);
-		console.log(tracks);
-		window.plmake.push(plname);
-		//newPlaylist(plname);
-		for (var ib = 0; ib < tracks.length; ib++) {
-			try{
-				var artist = '';
-				if (tracks[ib]['track']['artists'] != undefined){
-					if (tracks[ib]['track']['artists'].length > 0){
-						artist = tracks[ib]['track']['artists'][0]['name'];
+function endPortifyRun(){
+	var end = new Date().getTime();
+	var time = end - window.portifystart;
+	alert("Import Completed ");
+	alert('Runtime: ' + time/1000);
+	window.canImage = true;
+	window.portifyWorking = false;
+	clearInterval(window.plinfo['ticker']);
+}
+function tickLauncher(){
+	if (window.plinfo['RunSong'] == true){
+		window.plinfo['RunSong'] = false;
+		if (window.plinfo['lists'].length){
+			dosong = window.plinfo['lists'][0]['tracks'].shift();
+			plname = window.plinfo['lists'][0]['name'];
+			if (dosong === undefined){
+				window.plinfo['lists'].shift();
+				if (window.plinfo['lists'].length == 0){
+					endPortifyRun();
+				} else {
+					window.plinfo['RunSong'] = true;
+				}
+			} else {
+				if (window.plinfo['lists']['mode'] != 'string'){
+					tname = dosong['track']['name'];
+					if (dosong['track']['artists'] != undefined){
+						if (dosong['track']['artists'].length > 0){
+							addSongToPlaylist(tname+ ' - ' +dosong['track']['artists'][0]['name'], plname);
+						} else {
+							addSongToPlaylist(tname, plname);
+						}
+					} else {
+						addSongToPlaylist(tname, plname);
 					}
 				}
-				window.tlmake.push([tracks[ib]['track']['name'], artist, plname]);
-			} catch(err){
 			}
 		}
 	}
-	startRunning();
-}
-function startRunning(){
-	window.RunSong = false;
-	window.RunPL = true;
-	window.ticker=setInterval(tickLauncher,200);
+	if (window.plinfo['RunPL'] == true){
+		window.plinfo['RunPL'] = false;
+		for(i in window.plinfo['lists']){
+			var plist = window.plinfo['lists'][i];
+			if (plist['createdpl']  == false){
+				plist['createdpl'] = true;
+				plist['name'] = plist['prefix'] + plist['name'];
+				plist['prefix'] = '';
+				newPlaylist(plist['name']);
+				return;
+			}
+		}
+		window.plinfo['RunSong'] = true;
+	}
 }
 
-function tickLauncher(){
-	if (window.RunSong == true){
-		window.RunSong = false;
-		dosong = window.tlmake.shift();
-		if (dosong === undefined){
-			var end = new Date().getTime();
-			var time = end - window.portifystart;
-			alert("Import Completed ");
-			alert('Runtime: ' + time/1000);
-			window.canImage = true;
-			window.portifyWorking = false;
-			clearInterval(window.ticker);
-		} else {
-		addSongToPlaylist(dosong[0], dosong[1], dosong[2]);
-		}
-	}
-	if (window.RunPL == true){
-		window.RunPL = false;
-		if (window.plmake.length > 0){
-			newPlaylist(window.plmake.shift());
-		} else {
-			window.RunSong = true;
-		}
+
+function gotPlaylists(playlists, rstr){
+	window.plinfo['mypls'] = playlists;
+	window.returncount = 0;
+	doprompt();
+}
+
+function confirmPlaylists(){
+	for (var i = 0; i < window.plinfo['mypls'].length; i++) {
+		newpl = {};
+		newpl['name'] = window.plinfo['mypls'][i]['name'];
+		newpl['mode'] = 'link';
+		newpl['prefix'] = window.plinfo['prefix'];
+		newpl['createdpl'] = false
+		newpl['loaded'] = false;
+		newpl['link'] = window.plinfo['mypls'][i]['href']
+		window.plinfo['lists'].push(newpl);
 	}
 }
+
 
 function playlistToggle(source) {
   checkboxes = document.getElementsByName('playlist');
@@ -244,7 +276,7 @@ function playlistToggle(source) {
   }
 }
 
-function doprompt(){
+function initmodal(){ // Initial questions
 	mds = window.modalstage;
 	switch (mds) {
 		case 0:
@@ -267,7 +299,6 @@ function doprompt(){
 			});
 			break;
 		case 2:
-
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -282,24 +313,37 @@ function doprompt(){
 				message: "What are you importing today?",
 				callback: function(result) {
 					if (result == true){
-						window.modalstage = window.modalstage + 2;
+						window.modalGo('MyPL', true);
+					} else {
+						window.modalGo('PlLink', true);
 					}
-					doprompt();
 				}
 			});
 			break;
-		case 3:
-			window.plprefix = "";
+	}
+}
+
+function PlLinkmodal(){ // Playlist from link
+	mds = window.modalstage;
+	switch (mds) {
+		case 0:
 			bootbox.prompt("Name the playlist", function(result) {
 			  if (result === null || result == "") {
 				window.location.reload();
 			  } else {
-				window.pllinkname = result;
+				window.pllinkname = result
+				newpl = {};
+				newpl['name'] = result;
+				newpl['mode'] = 'link';
+				newpl['prefix'] = '';
+				newpl['createdpl'] = false
+				newpl['loaded'] = false;
+				window.plinfo['lists'].push(newpl);
 				doprompt();
 			  }
 			});
 			break;
-		case 4:
+		case 1:
 			bootbox.prompt("Paste the link in here", function(result) {
 			  if (result === null) {
 				window.location.reload();
@@ -317,31 +361,39 @@ function doprompt(){
 					}
 				}
 				if(aaray.length == 2){
-					window.modalstage = window.modalstage + 4; // Skip to 9 next
 					window.returncount = 0;
-					window.plarray = [];
-					window.plarray.push(window.pllinkname);
-					window.plarrayFIX = window.plarray;
-					getItems("https://api.spotify.com/v1/users/" + aaray[0] + "/playlists/" + aaray[1], 'pl-' + window.pllinkname, plComplete);
+					window.plinfo['lists'][0]['link'] = "https://api.spotify.com/v1/users/" + aaray[0] + "/playlists/" + aaray[1];
+					window.modalGo('confirm', true);
+					//window.plarray = [];
+					//window.plarray.push(window.pllinkname);
+					//window.plarrayFIX = window.plarray;
+					//getItems("https://api.spotify.com/v1/users/" + aaray[0] + "/playlists/" + aaray[1], 'pl-' + window.pllinkname, plComplete);
 				}
 			  }
 			});
 			break;
-		case 5: //Different route to get here
+	}
+}
+
+function MyPLmodal(){
+	mds = window.modalstage;
+	switch (mds){
+		case 0:
 			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {
 			  if (result === null || result == "") {
-				window.plprefix = "";
+				window.plinfo['prefix'] = "";
 				doprompt();
 			  } else {
-				window.plprefix = result;
+				window.plinfo['prefix'] = result;
 				doprompt();
 			  }
 			});
 			break;
-		case 6:
-			getItems('https://api.spotify.com/v1/me/playlists', 'playlists', gotPlaylists);
+		case 1:
+			window.plinfo['mypls'] = [];
+			getItems('https://api.spotify.com/v1/me/playlists', 'gotpl', gotPlaylists, []);
 			break;
-		case 7:
+		case 2:
 			bootbox.confirm({
 				buttons: {
 					confirm: {
@@ -353,22 +405,23 @@ function doprompt(){
 						className: 'cancel-button-class'
 					}
 				},
-				message: "I see " + window.plarray.length.toString() + " playlists.<br>Do you want to pick which playlists to import or would you rather import everything?",
+				message: "I see " + window.plinfo['mypls'].length.toString() + " playlists.<br>Do you want to pick which playlists to import or would you rather import everything?",
 				callback: function(result) {
 					if (result == false){
-						window.modalstage = window.modalstage + 1;
-						window.plarrayFIX = window.plarray;
+						window.modalGo('confirm', false);
+						window.confirmPlaylists();
+						//window.plarrayFIX = window.plarray;
 					}
 					else{
-						window.plarrayFIX = [];
+						//window.plarrayFIX = [];
 					}
-					window.plarrayNO = [];
+					//window.plarrayNO = [];
 					doprompt();
 				}
 			});
 			break;
-		case 8:
-			if (window.plarray.length > 0){
+		case 3:
+			if (window.plinfo['mypls'].length > 0){
 				var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
 				var div = $("<div>", {class:"checkbox"})
 				var label = $("<label>",{for:"plToggle"});
@@ -376,15 +429,14 @@ function doprompt(){
 				label.append(input).append('[Check/Uncheck All]');
 				div.append(label);
 				playlist.append(div);
-				for(i in window.plarray){
+				for(i in window.plinfo['mypls']){
 					var div = $("<div>", {class:"checkbox"})
 					var label = $("<label>",{for:"playlist-"+i});
-					var input = $("<input>", {name:"playlist", id:"playlist-"+i, value:window.plarray[i], type:"checkbox", checked:"checked"});
-					label.append(input).append(''+window.plarray[i]);
+					var input = $("<input>", {name:"playlist", id:"playlist-"+i, value:window.plinfo['mypls'][i]['name'], type:"checkbox", checked:"checked"});
+					label.append(input).append(''+window.plinfo['mypls'][i]['name']);
 					div.append(label);
 					playlist.append(div);
 				}
-				console.log("playlist built"+playlist.length);
 				bootbox.dialog({
 					title: "Select Playlist to Include",
 					message: playlist.prop('outerHTML'),
@@ -393,7 +445,7 @@ function doprompt(){
 							label: 'Back',
 							className: 'cancel-button-class',
 							callback: function () {
-								window.modalstage = window.modalstage - 1;
+								window.modalstage = window.modalstage - 2;
 								doprompt();
 							}
 						},
@@ -401,28 +453,63 @@ function doprompt(){
 							label: 'Go',
 							className: 'confirm-button-class',
 							callback: function () {
-								window.plarrayFIX = [];
+								mypls = window.plinfo['mypls']
+								newpls = [];
 								$("input[name='playlist']:checked").each(function(){
-									window.plarrayFIX.push($(this).val());
+									for (i in mypls){
+										if (mypls[i]['name'] == $(this).val()){
+											newpls.push(mypls[i]);
+										}
+									}
 								});
-								doprompt()
+								window.plinfo['mypls'] = newpls;
+								window.confirmPlaylists();
+								window.modalGo('confirm', true);
 							}
 						}
 					}
 				});
 			}
 			break;
-		case 9:
-			window.plarray = window.plarrayFIX;
-			bootbox.confirm("This can take quite a while, are you sure your ready?", function(result) {
-				if (result == true){
-					blankscriptfiles();
-					window.portifystart = new Date().getTime();
-					doallplaylists(window.plarray);
-				} else{
-					window.location.reload();
-				}
-			});
+	
+	}
+}
+
+function confirmmodal(){ // Confirm run
+	bootbox.confirm("This can take quite a while, are you sure your ready?", function(result) {
+		if (result == true){
+			blankscriptfiles();
+			window.portifystart = new Date().getTime();
+			window.loadpls();
+		} else{
+			window.location.reload();
+		}
+	});
+}
+
+function modalGo(type, doprompts){
+	window.modalstage = 0;
+	window.modalmode = type;
+	if (doprompts === true){
+		doprompt();
+	}
+}
+
+function doprompt(){
+	mds = window.modalstage;
+	mdm = window.modalmode;
+	switch (mdm){
+		case "init":
+			initmodal();
+			break;
+		case "PlLink":
+			PlLinkmodal();
+			break;
+		case "MyPL":
+			MyPLmodal();
+			break;
+		case "confirm":
+			confirmmodal();
 			break;
 	}
 	window.modalstage = window.modalstage + 1;
@@ -455,13 +542,17 @@ function dospotimport(){
 	window.canImage = false;
 	doprompt();
 }
-// Need to figure out how to inject
-// DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;}
-// Into the scope of listen.js
+function setupPlInfo(){
+	window.plinfo = {};
+	window.plinfo['lists'] = [];
+	window.plinfo['prefix'] = "";
+}
 function portifyjs(mstage){
 	window.loadstep = 0;
 	window.modalstage = mstage;
+	window.modalmode = "init";
 	window.items = {};
+	setupPlInfo();
 	doloadstep();
 }
 if (window.portifyWorking != true){
