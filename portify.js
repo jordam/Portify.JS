@@ -429,16 +429,7 @@ function initmodal(){ // Initial questions
 					  }
 					}
 				},
-				message: "<h1>Welcome to Portify.JS<\/h1><br>What would you like to do today?",
-				callback: function(result) {
-					if (result == true){
-						// Importing my playlists
-						window.modalGo('MyPL', true);
-					} else {
-						// Importing playlist from link
-						window.modalGo('PlLink', true);
-					}
-				}
+				message: "<h1>Welcome to Portify.JS<\/h1><br>What would you like to do today?"
 			});
 			break;
 	}
