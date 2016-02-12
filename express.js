@@ -44,25 +44,29 @@ function locationmapper(){
 }
 
 function spotifyCode(){
-	var lasttime = localStorage.getItem('portifyTime');
-	var coclick = false;
-	if (lasttime === null){
-		localStorage.setItem('portifyTime', new Date().getTime().toString());
-		$('#clearOauth').click();
-		coclick = true;
+	if (window.location.pathname.indexOf('authorize') != -1){
+		document.querySelector('.auth-allow').click();
 	} else {
-		if ((new Date().getTime() - parseInt(lasttime))/1000 > 3600){
+		var lasttime = localStorage.getItem('portifyTime');
+		var coclick = false;
+		if (lasttime === null){
 			localStorage.setItem('portifyTime', new Date().getTime().toString());
 			$('#clearOauth').click();
 			coclick = true;
+		} else {
+			if ((new Date().getTime() - parseInt(lasttime))/1000 > 3600){
+				localStorage.setItem('portifyTime', new Date().getTime().toString());
+				$('#clearOauth').click();
+				coclick = true;
+			}
 		}
-	}
-	if ($('#oauth').attr('value').length > 0 && !coclick){
-		window.location = "https://play.google.com/music/portifyjs?spotifyoauth=" + $('#oauth').attr('value');
-	} else {
-		$('#oauthPopup').click();
-		$('#scope-playlist-read-private').attr('checked', 'checked');
-		$('#oauthRequestToken').click();
+		if ($('#oauth').attr('value').length > 0 && !coclick){
+			window.location = "https://play.google.com/music/portifyjs?spotifyoauth=" + $('#oauth').attr('value');
+		} else {
+			$('#oauthPopup').click();
+			$('input[type=checkbox]').attr('checked', 'checked');
+			$('#oauthRequestToken').click();
+		}
 	}
 }
 
