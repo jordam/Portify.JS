@@ -8,7 +8,7 @@ Transfer playlists between Spotify and Google Music both ways!
 + Spotify Free Compatible
 + No B/S
 
-Setup is fast, go from reading this sentence to importing music in less then 60 seconds.
+Setup is fast, go from reading this sentence to importing music in less then 30 seconds.
 
 
 ### Instructions (For Chrome)
