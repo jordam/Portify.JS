@@ -437,7 +437,7 @@ function Oauthmodal(){ // Oauth prompt
 			if (window.spotifyoauth === undefined){
 				bootbox.alert('Go --&gt <a target="_blank" href="https://developer.spotify.com/web-api/console/get-current-user-playlists/">HERE</a> &lt--. Click GET OAUTH TOKEN. Check all of the checkboxes. Then REQUEST TOKEN. Finally, copy the stuff in the OAuth Token text box to your clipboard and hit OK back over here.', doprompt);
 			} else {
-				window.modalGo(window.afterOauth, true); // Skip oauth prompt if we have a token set
+				setTimeout(function(){window.modalGo(window.afterOauth, true);}, 500);// Skip oauth prompt if we have a token set
 			}
 			break;
 		case 1: // Oauth token input page
@@ -719,11 +719,11 @@ function MyPLmodal(){ // Get Playlists From Self
 			bootbox.prompt("Enter a prefix for your playlists like 'spotify-' (or leave blank to import them without altering their names)", function(result) {
 			  if (result === null || result == "") {
 				window.plinfo['prefix'] = "";
-				doprompt();
 			  } else {
 				window.plinfo['prefix'] = result;
-				doprompt();
 			  }
+			  console.log(window.modalstage);
+			  doprompt();
 			});
 			break;
 		case 1: // Fire off request to get self playlists from spotify, no dialog
@@ -846,6 +846,8 @@ function modalGo(type, doprompts){ // Pop into another dialog branch.
 function doprompt(){ // Dialog master router
 	mds = window.modalstage;
 	mdm = window.modalmode;
+	console.log(mds);
+	console.log(mdm);
 	switch (mdm){
 		case "init":
 			initmodal();
