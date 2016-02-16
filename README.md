@@ -40,6 +40,8 @@ The Chrome version is more sophisticated and light weight. It will get your oaut
 
 The app runs real-time and takes around a second a song to go spotify -> google music. Google music -> spotify is faster. 
 
+If you would like to listen to music while importing your songs you will need two tabs, one for portify.js and one for you to listen to music. Run the GM-DLU bookmark on the listening tab, otherwise your listening tab will freeze trying to keep in sync with your import tab. Alternatively, just wait a few an listen once imported.
+
 An old demo video is availible here -> [Demo Video](http://screencast-o-matic.com/u/VbjP/portify_js)
 
 By using Portify.JS you may violate both Spotify's and Google's Terms of Service. You agree that you are using Portify.JS on your own risk. The author does not accept liability (as far as permitted by law) for any loss arising from any use of this tool. If you choose not to agree to these terms, then you may not use this tool.
