@@ -395,8 +395,8 @@ function confirmPlaylists(){ // Used to copy the playlists from mypls into the l
 		newpl['prefix'] = window.plinfo['prefix'];
 		newpl['createdpl'] = false
 		newpl['loaded'] = false;
-		newpl['link'] = window.plinfo['mypls'][i]['href']
-		newpl['tracks'] = []
+		newpl['link'] = window.plinfo['mypls'][i]['href'];
+		newpl['tracks'] = [];
 		window.plinfo['lists'].push(newpl);
 	}
 }
