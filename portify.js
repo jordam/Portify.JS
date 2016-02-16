@@ -1,4 +1,4 @@
-//Portify.JS V1.02
+//Portify.JS V1.04
 
 //TODO
 // Incorporate g-scrape.js to allow exporting FROM google play.
@@ -182,7 +182,29 @@ function loadpls(){ // Grabs a playlist from plinfo['lists'] and loads the track
 			}
 			return; //Drop out of loadpls
 		}
+	} // Check for playlists with more tracks then 1000
+	rcb = [];
+	for(i in window.plinfo['lists']){
+		pl = window.plinfo['lists'][i];
+		if (pl['tracks'].length > 1000){
+			var i,j,temparray,chunk = 1000;
+			for (i=0,j=pl['tracks'].length; i<j; i+=chunk) {
+				temparray = pl['tracks'].slice(i,i+chunk);
+				newpl = {};
+				newpl['name'] = pl['name'] + "-" + ((i/chunk)+1).toString();
+				newpl['mode'] = pl['mode'];
+				newpl['prefix'] = pl['prefix'];
+				newpl['createdpl'] = pl['createdpl'];
+				newpl['loaded'] = pl['loaded'];
+				newpl['link'] = pl['link'];
+				newpl['tracks'] = temparray;
+				rcb.push(newpl);
+			}
+		} else{
+			rcb.push(pl);
+		}
 	}
+	window.plinfo['lists'] = rcb; // Replace the existing playlist list with the modified one that is split up if a playlist has more then 1000 songs.
 	startRunning(); //If all playlists are loaded, startRunning the automation
 }
 
@@ -374,6 +396,7 @@ function confirmPlaylists(){ // Used to copy the playlists from mypls into the l
 		newpl['createdpl'] = false
 		newpl['loaded'] = false;
 		newpl['link'] = window.plinfo['mypls'][i]['href']
+		newpl['tracks'] = []
 		window.plinfo['lists'].push(newpl);
 	}
 }
