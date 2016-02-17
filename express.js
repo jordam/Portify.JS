@@ -97,10 +97,14 @@ function gplayTakeover(){
 					dataType: "text",
 					success : function (datab) {
 						//var inject = ";var DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;};" // Our string to inject at the bottom of the listen.js page. Replaces obfusicated function DP with a patched version that replaces 'src' with 'nosrc'.
-						var inject = ";var DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var result = window.mutateInput(localtxt);a.innerHTML=result;};" 
+						var functionIndicator = "=function(a,b,c,e){a.innerHTML="; // This string is used to locate the function we need to modify
+						var i = datab.split(functionIndicator)[1].indexOf('}');
+						var splits = [datab.split(functionIndicator)[1].slice(0,i), datab.split(functionIndicator)[1].slice(i+1)];
+						var smod = datab.split(functionIndicator)[0] + "=function(a,b,c,e){a.innerHTML=window.mutateInput(" + splits[0] + ")}" + splits[1];
+						console.log(smod);
 						$('<script>')
 							.attr('type', 'text/javascript')
-							.text(insertBeforeLastOccurrence(datab,"})()", inject))
+							.text(smod)
 							.appendTo('body');
 						$('<style>')
 							.attr('type', 'text/css')
