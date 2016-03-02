@@ -146,7 +146,7 @@ function addSongToPlaylist(search, playlist){ // Add a song to a playlist. Fires
 function pollfornewsong(playlist){ // Check if search has completed, call addSongCallback when it has
 	window.pollcount = window.pollcount + 1; // Add one to the poll count (used to timeout)
 	var repoll = true;
-	if ($("paper-spinner:visible").length == 0){ // If our loading spinner not visible
+	if ($("#loadingIndicator:visible").length == 0){ // If our loading spinner not visible
 		addSongCallback(playlist); //Run the next step in the automation, clicking the song and adding it to the playlist
 		repoll = false; // Dont recheck anymore
 	}
