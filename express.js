@@ -77,10 +77,8 @@ function gplayTakeover(){
 		dataType: "text",
 		success : function (data) {
 			window.htmldata = data;
-			window.basejs = "https://" + window.htmldata.split("/listen.js")[0].split('https://')[window.htmldata.split("/listen.js")[0].split('https://').length-1] + "/";
-			window.listensrc = window.basejs + "listen.js";
-			window.sjsrc = window.basejs + "sj_srcs.js";
-			document.write(data.replace("listen.js", "").replace("sj_srcs.js",""));
+			window.listensrc = window.htmldata.slice(window.htmldata.indexOf('listen_extended')-67,window.htmldata.indexOf('listen_extended')+59)
+			document.write(data.replace("listen_extended", ""));
 			$.ajax({
 					url : window.sjsrc,
 					dataType: "text",

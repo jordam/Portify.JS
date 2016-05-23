@@ -10,6 +10,8 @@ Transfer playlists between Spotify and Google Music both ways!
 
 Setup is fast, go from reading this sentence to importing music in less then 30 seconds.
 
+Working again as of 5/23/16.
+
 
 ### Instructions (For Chrome)
 
