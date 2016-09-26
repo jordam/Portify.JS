@@ -29,17 +29,16 @@ if ((document.readyState == 'complete' || document.readyState == 'interactive') 
 		   dospotimport();
 	}
 }
+
 function locationmapper(){
-	switch(window.location.pathname) {
-		case "/music/portifyjs":
-			gplayTakeover();
-			break;
-		case "/web-api/console/get-current-user-playlists/":
-			spotifyCode();
-			break;
-		default:
-			window.location = "https://developer.spotify.com/web-api/console/get-current-user-playlists/";
-			break;
+	if (window.QueryString.spotifyoauth) {
+		gplayTakeover();
+	}
+	else if (window.location.pathname == "/web-api/console/get-current-user-playlists/") {
+		spotifyCode();
+	}
+	else {
+		window.location = "https://developer.spotify.com/web-api/console/get-current-user-playlists/";
 	}
 }
 
@@ -61,7 +60,7 @@ function spotifyCode(){
 			}
 		}
 		if ($('#oauth').attr('value').length > 0 && !coclick){
-			window.location = "https://play.google.com/music/portifyjs?spotifyoauth=" + $('#oauth').attr('value');
+			window.location = "https://play.google.com/music/listen?spotifyoauth=" + $('#oauth').attr('value');
 		} else {
 			$('#oauthPopup').click();
 			$('input[type=checkbox]').attr('checked', 'checked');
