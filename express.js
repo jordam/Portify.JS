@@ -31,7 +31,7 @@ if ((document.readyState == 'complete' || document.readyState == 'interactive') 
 }
 
 function locationmapper(){
-	if (window.QueryString.spotifyoauth) {
+	if (window.location.pathname == "/music/listen" && window.QueryString && window.QueryString.spotifyoauth) {
 		gplayTakeover();
 	}
 	else if (window.location.pathname == "/web-api/console/get-current-user-playlists/") {
