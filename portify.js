@@ -104,11 +104,11 @@ function doloadstep(){ // Load in the required libraries in the proper order
 		case 0:
 			addstyle("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
 			addscript('https://code.jquery.com/jquery-1.11.0.min.js', doloadstep);
-			addscript("https://rawgit.com/jordam/Portify.JS/master/g-scrape.js", function(){});
+			addscript(window.portifyURL + "/g-scrape.js", function(){});
 			break;
 		case 1:
 			addscript('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js', doloadstep);
-			$.extend($.expr[":"], {
+			jQuery.extend(jQuery.expr[":"], {
 			  "containsNC": function(elem, i, match, array) {
 				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
 			  }
@@ -123,9 +123,9 @@ function doloadstep(){ // Load in the required libraries in the proper order
 
 
 function newPlaylist(name){ // Create new playlist by name.
-	$('#new-playlist').click();
-	$("paper-input.playlist-name").val(name);
-	$("paper-button[data-action='save']").click();
+    jQuery('[data-id="create-playlist"]').click();
+	jQuery("paper-input.playlist-name").val(name);
+	jQuery("paper-button[data-action='save']").click();
 	setTimeout(runPLPause, 1000);
 }
 function runPLPause(){ // Indicates that we can create the next playlist
@@ -133,10 +133,10 @@ function runPLPause(){ // Indicates that we can create the next playlist
 }
 
 function addSongToPlaylist(search, playlist){ // Add a song to a playlist. Fires a search query and sets up pollfornewsong to poll for the search to complete
-	$("button[name='add-duplicate-songs']").click();
+	jQuery("button[name='add-duplicate-songs']").click();
 
 	clearwaves();
-	$("sj-search-box")[0].fire('query', {query: search});
+	jQuery("sj-search-box")[0].fire('query', {query: search});
 	setTimeout(function() {
 		pollfornewsong(playlist);
 	}, 100);
@@ -146,7 +146,7 @@ function addSongToPlaylist(search, playlist){ // Add a song to a playlist. Fires
 function pollfornewsong(playlist){ // Check if search has completed, call addSongCallback when it has
 	window.pollcount = window.pollcount + 1; // Add one to the poll count (used to timeout)
 	var repoll = true;
-	if ($("#loadingIndicator:visible").length == 0){ // If our loading spinner not visible
+	if (jQuery("#loadingIndicator:visible").length == 0){ // If our loading spinner not visible
 		addSongCallback(playlist); //Run the next step in the automation, clicking the song and adding it to the playlist
 		repoll = false; // Dont recheck anymore
 	}
@@ -162,10 +162,10 @@ function pollfornewsong(playlist){ // Check if search has completed, call addSon
 }
 function addSongCallback(playlist){ // Add the first song in a songlist-container on the page to a playlist
 	try{
-		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click(); //Click the more button on the song
-		$("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click(); //Run twice to fix buggyness
-		doclick($("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);    //Click add to playlist on the submenu
-		doclick($("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]); //Click on the playlist that it needs to add to
+		jQuery("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click(); //Click the more button on the song
+		jQuery("div.songlist-container").find("paper-icon-button[icon='more-vert']")[0].click(); //Run twice to fix buggyness
+		doclick(jQuery("div[class='goog-menuitem-content']:contains('Add to playlist')")[0]);    //Click add to playlist on the submenu
+		doclick(jQuery("div.playlist-menu").find("div[role='menuitem']:contains('" + playlist + "')")[0]); //Click on the playlist that it needs to add to
 	} catch(err){
 	}
 	window.plinfo['RunSong'] = true; // Run the next song
@@ -224,7 +224,7 @@ function plComplete(dat, pllink){ // Called when a url loaded playlist has compl
 }
 
 function getSpotDirect(url, donecb, errorcb){
-	$.ajax(url, {
+	jQuery.ajax(url, {
 		dataType: 'json',
 		headers: {
 			'Authorization': 'Bearer ' + spotifyoauth
@@ -239,7 +239,7 @@ function getSpotDirect(url, donecb, errorcb){
 }
 
 function postSpotDirect(url, data, donecb, errorcb){
-	$.ajax(url, {
+	jQuery.ajax(url, {
 		method: "POST",
 		data: JSON.stringify(data),
 		dataType: 'json',
@@ -256,7 +256,7 @@ function postSpotDirect(url, data, donecb, errorcb){
 }
 
 function getItems(url, donevar, donecb, build) { // Load in items from a spotify api endpoint. Automatically follows next links, compiles data, and pushes donecb(data, donevar) in the end
-	$.ajax(url, {
+	jQuery.ajax(url, {
 		dataType: 'json',
 		headers: {
 			'Authorization': 'Bearer ' + spotifyoauth
@@ -352,9 +352,9 @@ function loadandscrapepl(){
 	console.log(window.gplexport['exportpls']);
 	window.gplexport['plon'] = window.gplexport['exportpls'].shift();
 	if (window.gplexport['plon'] != undefined){
-		$('a[data-type=pl]').each(function(){
-			if($(this).text().trim() == window.gplexport['plon']){
-				location.hash = "/pl/" + $(this).attr('data-id');
+		jQuery('a[data-type=pl]').each(function(){
+			if(jQuery(this).text().trim() == window.gplexport['plon']){
+				location.hash = "/pl/" + jQuery(this).attr('data-id');
 				waitForGPLload(window.gplexport['plon'] + '');
 				return false;
 			}
@@ -365,7 +365,7 @@ function loadandscrapepl(){
 }
 
 function waitForGPLload(plname){
-	if($("a.selected[data-id=" + unescape(location.hash.split("/")[2]).replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') + "]").length > 0){ // If we can find a selected <a> element on the page with a data id matching the hash location we have loaded the page
+	if(jQuery("a.selected[data-id=" + unescape(location.hash.split("/")[2]).replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') + "]").length > 0){ // If we can find a selected <a> element on the page with a data id matching the hash location we have loaded the page
 		setTimeout(function(){window.scrapeSongs(function(a){gplDidScrape(a, plname)})}, 500);
 	} else {
 		setTimeout(function(){waitForGPLload(plname)}, 100);
@@ -492,7 +492,7 @@ function gplexportmodal(){//Google playlist export dialog
 						className: 'cancel-button-class'
 					}
 				},
-				message: "I see " + $('a[data-type=pl]').length.toString() + " playlists.<br>Do you want to pick which playlists to export or would you rather export everything?",
+				message: "I see " + jQuery('a[data-type=pl]').length.toString() + " playlists.<br>Do you want to pick which playlists to export or would you rather export everything?",
 				callback: function(result) {
 					window.gplexport['specific'] = result;
 					doprompt();
@@ -501,18 +501,18 @@ function gplexportmodal(){//Google playlist export dialog
 			break;
 		case 1: //
 			if (window.gplexport['specific']){
-				aa = [];$('a[data-type=pl]').each(function(){aa.push($(this).text().trim())});
+				aa = [];jQuery('a[data-type=pl]').each(function(){aa.push(jQuery(this).text().trim())});
 				playlistSelect(aa, "Select Playlist to Include", function(){ // Launch the playlist selector dialog, run the code below once confirmed
 					window.gplexport['exportpls'] = [];
-					$("input[name='playlist']:checked").each(function(){
-						window.gplexport['exportpls'].push($(this).val());
+					jQuery("input[name='playlist']:checked").each(function(){
+						window.gplexport['exportpls'].push(jQuery(this).val());
 					});
 					bootbox.alert('Ready?', doprompt);
 				});
 			} else {
 				aa = [];
-				$('a[data-type=pl]').each(function(){
-					aa.push($(this).text().trim())
+				jQuery('a[data-type=pl]').each(function(){
+					aa.push(jQuery(this).text().trim())
 				});
 				window.gplexport['exportpls'] = aa;
 				bootbox.alert('Ready?', doprompt);
@@ -614,14 +614,14 @@ function gplayToSpot(){
 			window.gplexport['pldone'][i]['tdone'] = true;
 		}
 	}
-	$("#portnowcopying").text("NULL; Import Complete");
+	jQuery("#portnowcopying").text("NULL; Import Complete");
 }
 
 function createSpotPl(plobj){
 	dat = {};
 	dat["name"] = window.gplexport['prefix'] + plobj['name']; 
 	dat["public"] = false;
-	$("#portnowcopying").text(dat["name"]);
+	jQuery("#portnowcopying").text(dat["name"]);
 	postSpotDirect("https://api.spotify.com/v1/users/" + window.gplexport['spot_uid'] + "/playlists", dat, function(dbac){
 		plobj['created'] = true;
 		plobj['id'] = dbac['id'];
@@ -638,7 +638,7 @@ function createSpotTrack(plid, trackobj){
 	}
 	trackobj['created'] = true;
 	tstr = tstr + trackobj['title'];
-	$("#portnowcopying").text(tstr);
+	jQuery("#portnowcopying").text(tstr);
 	getSpotDirect("https://api.spotify.com/v1/search?q=" + encodeURI(tstr) + "&type=track&limit=1&offset=0", function(dbac){
 		for (i in dbac['tracks']['items']){
 			dat = "";
@@ -787,9 +787,9 @@ function MyPLmodal(){ // Get Playlists From Self
 				playlistSelect(aar, "Select Playlist to Include", function(){ // Launch the playlist selector dialog, run the code below once confirmed
 					mypls = window.plinfo['mypls']
 					newpls = [];
-					$("input[name='playlist']:checked").each(function(){
+					jQuery("input[name='playlist']:checked").each(function(){
 						for (i in mypls){
-							if (mypls[i]['name'] == $(this).val()){
+							if (mypls[i]['name'] == jQuery(this).val()){
 								newpls.push(mypls[i]);
 							}
 						}
@@ -806,17 +806,17 @@ function MyPLmodal(){ // Get Playlists From Self
 
 function playlistSelect(plarray, message, confirmcb){ // Launch the playlist selection dialog with a playlist name array, a message, and a callback on confirmation
 	// Generate checkbox playlist selection elements
-	var playlist = $('<div>',{style:"height:300px;overflow:scroll;"});
-	var div = $("<div>", {class:"checkbox"})
-	var label = $("<label>",{for:"plToggle"});
-	var input = $("<input>", {name:"plToggle", id:"plToggle", onclick:"playlistToggle(this);", type:"checkbox", checked:"checked"});
+	var playlist = jQuery('<div>',{style:"height:300px;overflow:scroll;"});
+	var div = jQuery("<div>", {class:"checkbox"})
+	var label = jQuery("<label>",{for:"plToggle"});
+	var input = jQuery("<input>", {name:"plToggle", id:"plToggle", onclick:"playlistToggle(this);", type:"checkbox", checked:"checked"});
 	label.append(input).append('[Check/Uncheck All]');
 	div.append(label);
 	playlist.append(div);
 	for(i in plarray){
-		var div = $("<div>", {class:"checkbox"})
-		var label = $("<label>",{for:"playlist-"+i});
-		var input = $("<input>", {name:"playlist", id:"playlist-"+i, value:plarray[i], type:"checkbox", checked:"checked"});
+		var div = jQuery("<div>", {class:"checkbox"})
+		var label = jQuery("<label>",{for:"playlist-"+i});
+		var input = jQuery("<input>", {name:"playlist", id:"playlist-"+i, value:plarray[i], type:"checkbox", checked:"checked"});
 		label.append(input).append(''+plarray[i]);
 		div.append(label);
 		playlist.append(div);
@@ -906,7 +906,7 @@ function blankscriptfiles(){ // Remove scripts and css files we have loaded.
 }
 
 function clearwaves(){ // Clear ripple animations, they build up if we dont.
-	x = $("div.wave-container").parent().parent()[0];
+	x = jQuery("div.wave-container").parent().parent()[0];
 	if (x !== undefined){
 		rl = x.ripples.length;
 		for (var i = 0; i < rl; i++) {
@@ -916,10 +916,10 @@ function clearwaves(){ // Clear ripple animations, they build up if we dont.
 }
 
 function deleteMatchingPlaylists(search){ // Used to undo my test playlists. Will delete all playlists containing the search string
-	$('a:contains(' + search + ')').each(function( index ) {
-		$(this).find('paper-icon-button').first().click()
-		doclick($("div[class='goog-menuitem-content']:contains('Delete playlist')")[0])
-		$('button:contains(Delete playlist)').click()
+	jQuery('a:contains(' + search + ')').each(function( index ) {
+		jQuery(this).find('paper-icon-button').first().click()
+		doclick(jQuery("div[class='goog-menuitem-content']:contains('Delete playlist')")[0])
+		jQuery('button:contains(Delete playlist)').click()
 	});
 }
 

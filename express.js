@@ -2,6 +2,8 @@
 // Should complete all steps needed to load portify.js
 // Also mutates the google listen.js file to selectively block images
 
+window.portifyURL = 'https://rawgit.com/jordam/Portify.JS/master';
+
 function insertBeforeLastOccurrence(strToSearch, strToFind, strToInsert) {
     var n = strToSearch.lastIndexOf(strToFind);
     if (n < 0) return strToSearch;
@@ -50,70 +52,29 @@ function spotifyCode(){
 		var coclick = false;
 		if (lasttime === null){
 			localStorage.setItem('portifyTime', new Date().getTime().toString());
-			$('#clearOauth').click();
+			jQuery('#clearOauth').click();
 			coclick = true;
 		} else {
 			if ((new Date().getTime() - parseInt(lasttime))/1000 > 3600){
 				localStorage.setItem('portifyTime', new Date().getTime().toString());
-				$('#clearOauth').click();
+				jQuery('#clearOauth').click();
 				coclick = true;
 			}
 		}
-		if ($('#oauth').attr('value').length > 0 && !coclick){
-			window.location = "https://play.google.com/music/listen?spotifyoauth=" + $('#oauth').attr('value');
+		if (jQuery('#oauth').attr('value').length > 0 && !coclick){
+			window.location = "https://play.google.com/music/listen?spotifyoauth=" + jQuery('#oauth').attr('value');
 		} else {
-			$('#oauthPopup').click();
-			$('input[type=checkbox]').attr('checked', 'checked');
-			$('#oauthRequestToken').click();
+			jQuery('#oauthPopup').click();
+			jQuery('input[type=checkbox]').attr('checked', 'checked');
+			jQuery('#oauthRequestToken').click();
 		}
 	}
 }
 
 function gplayTakeover(){
 	window.spotifyoauth = window.QueryString.spotifyoauth;
-	$.ajax({
-		url : 'https:\/\/play.google.com\/music\/listen?u\x3d0\x26hl\x3den-US',
-		dataType: "text",
-		success : function (data) {
-			window.htmldata = data;
-			window.listensrc = window.htmldata.slice(window.htmldata.indexOf('listen_extended')-67,window.htmldata.indexOf('listen_extended')+59)
-			document.write(data.replace("listen_extended", ""));
-			$.ajax({
-					url : window.sjsrc,
-					dataType: "text",
-					success : function (datac) {
-						$('<script>')
-							.attr('type', 'text/javascript')
-							.text(datac.replace('animationConfig', 'notAnimationConfig'))
-							.appendTo('body');
-					}
-				});
-			setTimeout(function() {
-				$.ajax({
-					url : window.listensrc,
-					dataType: "text",
-					success : function (datab) {
-						//var inject = ";var DP=function(a,b,c,e){var localtxt = (BP(b(c||CP,void 0,e)));var re = /src=/g;var result = localtxt.replace(re, 'nosrc=');a.innerHTML=result;};" // Our string to inject at the bottom of the listen.js page. Replaces obfusicated function DP with a patched version that replaces 'src' with 'nosrc'.
-						var functionIndicator = "=function(a,b,c,e){a.innerHTML="; // This string is used to locate the function we need to modify
-						var i = datab.split(functionIndicator)[1].indexOf('}');
-						var splits = [datab.split(functionIndicator)[1].slice(0,i), datab.split(functionIndicator)[1].slice(i+1)];
-						var smod = datab.split(functionIndicator)[0] + "=function(a,b,c,e){a.innerHTML=window.mutateInput(" + splits[0] + ")}" + splits[1];
-						console.log(smod);
-						$('<script>')
-							.attr('type', 'text/javascript')
-							.text(smod)
-							.appendTo('body');
-						$('<style>')
-							.attr('type', 'text/css')
-							.text('* {transition: none !important;}')
-							.appendTo('head');
-						document.close();
-						$.getScript("https://rawgit.com/jordam/Portify.JS/master/portify.js");
-					}
-				});
-			}, 1000);
-		}
-	});
+
+    jQuery.getScript(window.portifyURL + "/portify.js");
 }
 
 window.mutateInput = function(input){
