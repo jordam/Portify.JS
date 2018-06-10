@@ -910,7 +910,9 @@ function clearwaves(){ // Clear ripple animations, they build up if we dont.
 	if (x !== undefined){
 		rl = x.ripples.length;
 		for (var i = 0; i < rl; i++) {
-			x.removeRipple(x.ripples[0]);
+			try {
+				x.removeRipple(x.ripples[0]);
+			} catch {}
 		}
 	}
 }
