@@ -1,4 +1,4 @@
-//Portify.JS V1.04
+//Portify.JS V1.05
 
 //TODO
 // Incorporate g-scrape.js to allow exporting FROM google play.
@@ -125,6 +125,9 @@ function doloadstep(){ // Load in the required libraries in the proper order
 function newPlaylist(name){ // Create new playlist by name.
     jQuery('[data-id="create-playlist"]').click();
 	jQuery("paper-input.playlist-name").val(name);
+	setTimeout(newPlaylistSave, 1000);
+}
+function newPlaylistSave(){
 	jQuery("paper-button[data-action='save']").click();
 	setTimeout(runPLPause, 1000);
 }

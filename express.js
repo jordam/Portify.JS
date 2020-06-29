@@ -36,39 +36,59 @@ function locationmapper(){
 	if (window.location.pathname == "/music/listen" && window.QueryString && window.QueryString.spotifyoauth) {
 		gplayTakeover();
 	}
-	else if (window.location.pathname == "/web-api/console/get-current-user-playlists/") {
+	else if (window.location.pathname == "/console/get-current-user-playlists/") {
 		spotifyCode();
 	}
 	else {
-		window.location = "https://developer.spotify.com/web-api/console/get-current-user-playlists/";
+		window.location = "https://developer.spotify.com/console/get-current-user-playlists/";
 	}
 }
 
-function spotifyCode(){
-	if (window.location.pathname.indexOf('authorize') != -1){
-		document.querySelector('.auth-allow').click();
-	} else {
-		var lasttime = localStorage.getItem('portifyTime');
-		var coclick = false;
-		if (lasttime === null){
-			localStorage.setItem('portifyTime', new Date().getTime().toString());
-			jQuery('#clearOauth').click();
-			coclick = true;
-		} else {
-			if ((new Date().getTime() - parseInt(lasttime))/1000 > 3600){
-				localStorage.setItem('portifyTime', new Date().getTime().toString());
-				jQuery('#clearOauth').click();
-				coclick = true;
-			}
-		}
-		if (jQuery('#oauth').attr('value').length > 0 && !coclick){
-			window.location = "https://play.google.com/music/listen?spotifyoauth=" + jQuery('#oauth').attr('value');
-		} else {
-			jQuery('#oauthPopup').click();
-			jQuery('input[type=checkbox]').attr('checked', 'checked');
-			jQuery('#oauthRequestToken').click();
-		}
+function doScopeSelect(){
+	var scopes = ['#scope-playlist-read-private', '#scope-user-library-modify', '#scope-playlist-modify-private', '#scope-user-library-read', '#scope-playlist-modify-public'];
+	for (i in scopes){
+		if (! document.querySelector(scopes[i]).checked){document.querySelector(scopes[i]).click(); };
 	}
+}
+
+function clickGetToken(){
+	localStorage.setItem('portifyTime', new Date().getTime().toString());
+	document.querySelector('.btn-green').click()
+	window.setTimeout(function(){
+		doScopeSelect()
+		window.setTimeout(function(){
+			document.querySelector('#oauthRequestToken').click();
+		}, 750);
+	}, 750);
+}
+
+function spotifyCode(){
+	if (window.location.pathname.indexOf('authorize') == -1){
+		if (document.querySelector('#oauth-input').value.length > 0){
+			var lasttime = localStorage.getItem('portifyTime');
+			var coclick = false;
+			if (lasttime === null){
+				clickGetToken();
+				coclick = true;
+			} else {
+				if ((new Date().getTime() - parseInt(lasttime))/1000 > 3600){
+					clickGetToken();
+					coclick = true;
+				}
+				else{
+					goToGoogle(document.querySelector('#oauth-input').value);
+				}
+			}
+		} else { // no oauth listed
+			clickGetToken();
+		}
+	} else {
+		document.querySelector('#auth-accept').click();
+	}
+}
+
+function goToGoogle(oauth){
+	window.location = "https://play.google.com/music/listen?spotifyoauth=" + oauth;
 }
 
 function gplayTakeover(){
