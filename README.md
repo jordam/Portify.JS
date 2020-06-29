@@ -10,7 +10,9 @@ Transfer playlists between Spotify and Google Music both ways!
 
 Setup is fast, go from reading this sentence to importing music in less then 30 seconds.
 
-Working again as of 5/23/16.
+Basic features fixed as of 6/29/2020 using Chrome.
+
+Select/unselect all broken. playlistToggle(this); in console for workaround.
 
 
 ### Instructions (For Chrome)
@@ -18,7 +20,7 @@ Working again as of 5/23/16.
 1. Drag the big <code>Portify.JS</code> link from [< THIS PAGE >](https://rawgit.com/jordam/Portify.JS/master/helper.html) to your bookmarks.
 
 2. Click the bookmark a few times. It will grab your oauth token from spotify, load up google music, then launch Portify.JS 
-  * A 404 page will appear during the process, ignore it and press the button again.
+  * A 404 page may appear during the process, ignore it and press the button again.
 
 
 ### Instructions (Other Browsers)
