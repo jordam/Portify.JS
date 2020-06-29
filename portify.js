@@ -136,7 +136,7 @@ function addSongToPlaylist(search, playlist){ // Add a song to a playlist. Fires
 	jQuery("button[name='add-duplicate-songs']").click();
 
 	clearwaves();
-	jQuery("sj-search-box")[0].fire('query', {query: search});
+	jQuery("sj-search-box")[0].fire('gpm-query', {query: search});
 	setTimeout(function() {
 		pollfornewsong(playlist);
 	}, 100);
